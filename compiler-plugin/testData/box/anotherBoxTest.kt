@@ -1,7 +1,45 @@
 // WITH_STDLIB
 
-fun box(): String {
-    val list = listOf("aaa", "bb", "c")
-    val result = list.map { it.length }.sum()
-    return if (result == 6) "OK" else "Fail: $result"
+import kotlinx.coroutines.flow.toList
+import com.woutwerkman.calltreevisualizer.CallStackTrackEventType
+import com.woutwerkman.calltreevisualizer.trackingCallStacks
+
+@com.woutwerkman.calltreevisualizer.NonTracked
+suspend fun box(): String {
+    val result = trackingCallStacks {
+        foo()
+    }
+        .toList()
+        .map { it.eventType }
+        .joinToString("\n") {
+            when (it) {
+                CallStackTrackEventType.CallStackPopType -> "Pop"
+                is CallStackTrackEventType.CallStackPushType -> "Push ${it.functionFqn}"
+                is CallStackTrackEventType.CallStackThrowType -> "Boom ${it.throwable.message}"
+            }
+        }
+
+    val expected = """
+        Push test.foo
+        Push test.bar
+        Boom Aaaah!
+        Pop
+    """.trimIndent()
+    return if (result != expected) {
+        result
+    } else {
+        "OK"
+    }
+}
+
+suspend fun foo() {
+    try {
+        bar()
+    } catch (_: Throwable) {
+
+    }
+}
+
+suspend fun bar() {
+    error("Aaaah!")
 }
