@@ -104,3 +104,11 @@ fun Test.setLibraryProperty(propName: String, jarName: String) {
         ?: return
     systemProperty(propName, path)
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
