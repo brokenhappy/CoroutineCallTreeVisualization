@@ -5,88 +5,143 @@
 
 package com.woutwerkman.calltreevisualizer.ir
 
-import org.jetbrains.kotlin.GeneratedDeclarationKey
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrDelegatingConstructorCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrInstanceInitializerCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
-import org.jetbrains.kotlin.ir.types.IrSimpleType
-import org.jetbrains.kotlin.ir.util.primaryConstructor
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.createBlockBody
+import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.expressions.impl.IrCallImplWithShape
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
+import org.jetbrains.kotlin.ir.symbols.IrReturnTargetSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
+import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
+import org.jetbrains.kotlin.ir.util.isSuspend
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.name.CallableId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 
-abstract class AbstractTransformerForGenerator(protected val context: IrPluginContext) : IrVisitorVoid() {
-    protected val irFactory = context.irFactory
-    protected val irBuiltIns = context.irBuiltIns
+class CallStackTrackingTransformer(private val context: IrPluginContext) : IrVisitorVoid() {
+    private val factory = context.irFactory
+    private val stackTrackedFunction = context.referenceFunctions(
+        CallableId(
+            packageName = FqName("com.woutwerkman.calltreevisualizer"),
+            className = null,
+            callableName = Name.identifier("stackTracked"),
+        ),
+    ).single()
 
-    abstract fun interestedIn(key: GeneratedDeclarationKey?): Boolean
-    abstract fun generateBodyForFunction(function: IrSimpleFunction, key: GeneratedDeclarationKey?): IrBody?
-    abstract fun generateBodyForConstructor(constructor: IrConstructor, key: GeneratedDeclarationKey?): IrBody?
+    override fun visitFunction(declaration: IrFunction) {
+        if (!declaration.isSuspend) return
+        if (!declaration.isInline) return
+        val statements = when (val body = declaration.body) {
+            is IrBlockBody -> body.statements
+            is IrExpressionBody -> listOf(body.expression)
+            is IrSyntheticBody, null -> return // Don't care
+        }
 
-    final override fun visitElement(element: IrElement) {
-        when (element) {
-            is IrDeclaration,
-            is IrFile,
-            is IrModuleFragment -> element.acceptChildrenVoid(this)
-            else -> {}
+
+        val lambdaSymbol = IrSimpleFunctionSymbolImpl()
+        createCallExpression(
+            declaration.returnType,
+            stackTrackedFunction,
+            typeArguments = listOf(declaration.returnType),
+            arguments = listOf(
+                IrConstImpl.string(
+                    SYNTHETIC_OFFSET,
+                    SYNTHETIC_OFFSET,
+                    context.irBuiltIns.stringType,
+                    declaration.fqNameWhenAvailable?.asString() ?: "<anonymous>",
+                ),
+                IrFunctionExpressionImpl(
+                    startOffset = SYNTHETIC_OFFSET,
+                    endOffset = SYNTHETIC_OFFSET,
+                    origin = GeneratedByCallTreeVisualizer,
+                    type = declaration.returnType,
+                    function = factory.createSimpleFunction(
+                        startOffset = SYNTHETIC_OFFSET,
+                        endOffset = SYNTHETIC_OFFSET,
+                        origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA,
+                        isInline = true,
+                        isExpect = false,
+                        modality = Modality.FINAL,
+                        isTailrec = false,
+                        isSuspend = false,
+                        isOperator = false,
+                        isInfix = false,
+                        isExternal = false,
+                        name = Name.identifier("<anonymous>"),
+                        visibility = DescriptorVisibilities.LOCAL,
+                        returnType = declaration.returnType,
+                        symbol = lambdaSymbol,
+                    ).also { function ->
+                        function.body = factory.createBlockBody(
+                            SYNTHETIC_OFFSET,
+                            SYNTHETIC_OFFSET,
+                            statements,
+                        )
+                    },
+                )
+            ),
+        ).also {
+            for (statement in statements) {
+                statement.acceptChildrenVoid(ReturnStatementTargetReplacer(
+                    old = declaration.symbol,
+                    new = lambdaSymbol,
+                ))
+            }
         }
     }
+}
 
-    final override fun visitSimpleFunction(declaration: IrSimpleFunction) {
-        val origin = declaration.origin
-        if (origin !is IrDeclarationOrigin.GeneratedByPlugin || !interestedIn(origin.pluginKey)) return
-        require(declaration.body == null)
-        declaration.body = generateBodyForFunction(declaration, origin.pluginKey)
-    }
-
-    final override fun visitConstructor(declaration: IrConstructor) {
-        val origin = declaration.origin
-        if (origin !is IrDeclarationOrigin.GeneratedByPlugin || !interestedIn(origin.pluginKey)) return
-        require(declaration.body == null)
-        declaration.body = generateBodyForConstructor(declaration, origin.pluginKey)
-    }
-
-    // ------------------------ utilities ------------------------
-
-    protected fun generateDefaultBodyForMaterializeFunction(function: IrSimpleFunction): IrBody? {
-        val constructedType = function.returnType as? IrSimpleType ?: return null
-        val constructedClassSymbol = constructedType.classifier
-        val constructedClass = constructedClassSymbol.owner as? IrClass ?: return null
-        val constructor = constructedClass.primaryConstructor ?: return null
-        val constructorCall = IrConstructorCallImpl(
-            -1,
-            -1,
-            constructedType,
-            constructor.symbol,
-            typeArgumentsCount = 0,
-            constructorTypeArgumentsCount = 0,
-        )
-        val returnStatement = IrReturnImpl(-1, -1, irBuiltIns.nothingType, function.symbol, constructorCall)
-        return irFactory.createBlockBody(-1, -1, listOf(returnStatement))
-    }
-
-    protected fun generateBodyForDefaultConstructor(declaration: IrConstructor): IrBody? {
-        val type = declaration.returnType as? IrSimpleType ?: return null
-
-        val delegatingAnyCall = IrDelegatingConstructorCallImpl(
-            -1,
-            -1,
-            irBuiltIns.anyType,
-            irBuiltIns.anyClass.owner.primaryConstructor?.symbol ?: return null,
-            typeArgumentsCount = 0,
-        )
-
-        val initializerCall = IrInstanceInitializerCallImpl(
-            -1,
-            -1,
-            (declaration.parent as? IrClass)?.symbol ?: return null,
-            type
-        )
-
-        return irFactory.createBlockBody(-1, -1, listOf(delegatingAnyCall, initializerCall))
+class ReturnStatementTargetReplacer(
+    private val old: IrReturnTargetSymbol,
+    private val new: IrReturnTargetSymbol
+) : IrVisitorVoid() {
+    override fun visitReturn(expression: IrReturn) {
+        if (expression.returnTargetSymbol == old) {
+            expression.returnTargetSymbol = new
+        }
+        super.visitReturn(expression)
     }
 }
+
+private fun createCallExpression(
+    type: IrType,
+    symbol: IrSimpleFunctionSymbol,
+    extensionReceiver: IrExpression? = null,
+    dispatchReceiver: IrExpression? = null,
+    arguments: List<IrExpression>,
+    argumentsCount: Int = arguments.size,
+    typeArguments: List<IrType> = emptyList(),
+    startOffset: Int = SYNTHETIC_OFFSET,
+    endOffset: Int = SYNTHETIC_OFFSET,
+): IrCall = IrCallImplWithShape(
+    startOffset = startOffset,
+    endOffset = endOffset,
+    type = type,
+    symbol = symbol,
+    typeArgumentsCount = typeArguments.size,
+    valueArgumentsCount = argumentsCount,
+    origin = GeneratedByCallTreeVisualizer,
+    superQualifierSymbol = null,
+    contextParameterCount = 0,
+    hasDispatchReceiver = dispatchReceiver != null,
+    hasExtensionReceiver = extensionReceiver != null,
+).also { call ->
+    (listOfNotNull(dispatchReceiver, extensionReceiver) + arguments).forEachIndexed { index, argument ->
+        call.arguments[index] = argument
+    }
+    typeArguments.forEachIndexed { index, typeArgument ->
+        call.typeArguments[index] = typeArgument
+    }
+}
+
+private val GeneratedByCallTreeVisualizer by IrStatementOriginImpl

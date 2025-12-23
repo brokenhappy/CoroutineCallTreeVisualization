@@ -1,4 +1,5 @@
 // WITH_STDLIB
+// WITH_COROUTINES
 
 import kotlinx.coroutines.flow.toList
 import com.woutwerkman.calltreevisualizer.CallStackTrackEventType
