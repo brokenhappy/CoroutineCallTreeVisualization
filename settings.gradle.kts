@@ -19,3 +19,4 @@ include("gradle-plugin")
 include("plugin-annotations")
 
 include("examples")
+include("tracked-call-tree-as-flow")
