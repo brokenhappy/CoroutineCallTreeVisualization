@@ -2,7 +2,6 @@ package com.woutwerkman.calltreevisualizer.services
 
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
-import com.woutwerkman.calltreevisualizer.SimplePluginRegistrar
 import com.woutwerkman.calltreevisualizer.ir.SimpleIrGenerationExtension
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
@@ -21,7 +20,6 @@ private class ExtensionRegistrarConfigurator(testServices: TestServices) : Envir
         module: TestModule,
         configuration: CompilerConfiguration
     ) {
-        FirExtensionRegistrarAdapter.registerExtension(SimplePluginRegistrar())
         IrGenerationExtension.registerExtension(SimpleIrGenerationExtension())
     }
 }
