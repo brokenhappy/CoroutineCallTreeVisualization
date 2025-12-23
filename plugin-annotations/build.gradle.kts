@@ -7,6 +7,10 @@ plugins {
     alias(libs.plugins.kotlin.binary.compatibility.validator)
 }
 
+dependencies {
+    commonMainImplementation(libs.kotlinx.coroutines.core)
+}
+
 kotlin {
     explicitApi()
 
