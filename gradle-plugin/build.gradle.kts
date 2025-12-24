@@ -17,7 +17,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation(libs.kotlin.gradle.plugin.api)
+    compileOnly(libs.kotlin.gradle.plugin.api)
     testImplementation(libs.kotlin.test.junit5)
 }
 
