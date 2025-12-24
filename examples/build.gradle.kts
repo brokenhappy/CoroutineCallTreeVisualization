@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.2.20"
+    alias(libs.plugins.kotlin.jvm)
     id("com.woutwerkman.calltreevisualizer") version "0.1.0-SNAPSHOT"
 }
 
