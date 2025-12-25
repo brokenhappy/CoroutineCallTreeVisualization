@@ -14,6 +14,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation(project(":plugin-annotations"))
+    implementation(libs.kotlinhax.shadowroutines.core)
 }
 
 kotlin {
