@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    id("com.woutwerkman.calltreevisualizer") version "0.1.0-SNAPSHOT"
+    id("com.woutwerkman.calltreevisualizer") version "0.1.0-2.2.20-SNAPSHOT"
 }
 
 group = "com.woutwerkman.calltreevisualizer"
