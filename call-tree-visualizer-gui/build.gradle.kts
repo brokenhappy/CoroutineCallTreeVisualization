@@ -17,9 +17,7 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation(project(":examples"))
     implementation(project(":tracked-call-tree-as-flow"))
-    implementation(libs.gs.core)
     implementation(compose.desktop.currentOs)
-    runtimeOnly(libs.gs.ui.swing)
 }
 
 kotlin {

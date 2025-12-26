@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
-import org.graphstream.graph.implementations.SingleGraph
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTime
@@ -35,16 +34,10 @@ data class Config(
 
 @ExperimentalCoroutinesApi
 suspend fun main() {
-    System.setProperty("org.graphstream.ui", "swing");
     val config = MutableStateFlow(Config())
     coroutineScope {
         launch {
             runConfigApp(config, onConfigChange = { config.value = it })
-        }
-        val graph = SingleGraph("Call tree")
-        graph.addNode("root")
-        launch {
-            graph.display()
         }
         trackingCallStacks {
             highlyBranchingCalls()
@@ -52,16 +45,6 @@ suspend fun main() {
             config.mapLatest { config ->
                 delay(1.seconds / config.speed)
             }.first()
-            when (event) {
-                CallStackTrackEventType.CallStackPopType -> graph.removeNode("${node.id}")
-                is CallStackTrackEventType.CallStackPushType -> {
-                    val newId = "${node.id}"
-                    val parentId = "${node.parent?.id ?: "root"}"
-                    graph.addNode(newId)
-                    graph.addEdge("$newId-$parentId", newId, parentId, true)
-                }
-                is CallStackTrackEventType.CallStackThrowType -> graph.removeNode("${node.id}")
-            }
         }
     }
 }
