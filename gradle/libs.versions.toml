@@ -13,6 +13,13 @@ junit = "4.13.2"
 # https://github.com/gmazzo/gradle-buildconfig-plugin
 buildconfig = "5.6.5"
 
+# https://github.com/JetBrains/compose-multiplatform
+compose = "1.10.0"
+compose-plugin = "1.8.2"
+
+# https://github.com/graphstream/gs-core
+gs-core = "2.0"
+
 
 [libraries]
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
@@ -26,6 +33,8 @@ kotlin-annotations-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-annota
 kotlin-compiler = { group = "org.jetbrains.kotlin", name = "kotlin-compiler", version.ref = "kotlin" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlin-gradle-plugin-api  = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin-api", version.ref = "kotlin" }
+gs-core = { group = "org.graphstream", name = "gs-core", version.ref = "gs-core" }
+gs-ui-swing = { group = "org.graphstream", name = "gs-ui-swing", version.ref = "gs-core" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 
@@ -34,6 +43,8 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "kotlin-binaryCompatibilityValidator"}
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig"}
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-compose-gradle = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 
 gradle-java-test-fixtures = { id = "java-test-fixtures" }
 gradle-idea = { id = "idea" }

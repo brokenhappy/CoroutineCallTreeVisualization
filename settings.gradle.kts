@@ -20,3 +20,4 @@ include("plugin-annotations")
 
 include("examples")
 include("tracked-call-tree-as-flow")
+include("call-tree-visualizer-gui")

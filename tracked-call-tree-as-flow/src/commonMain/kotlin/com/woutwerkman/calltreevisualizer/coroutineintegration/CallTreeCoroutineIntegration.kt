@@ -8,12 +8,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.withContext
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.coroutines.cancellation.CancellationException
 
 
-public class CallTreeNode(public val functionFqn: String, public val parent: CallTreeNode? = null)
+public class CallTreeNode(public val id: Int, public val functionFqn: String, public val parent: CallTreeNode? = null)
 
-public class CallStackTrackEvent(public val node: CallTreeNode, public val eventType: CallStackTrackEventType)
+public class CallStackTrackEvent(public val node: CallTreeNode, public val eventType: CallStackTrackEventType) {
+    public operator fun component1(): CallTreeNode = node
+    public operator fun component2(): CallStackTrackEventType = eventType
+}
 
 public sealed class CallStackTrackEventType {
     public data class CallStackPushType(val functionFqn: String) : CallStackTrackEventType()
@@ -21,7 +27,9 @@ public sealed class CallStackTrackEventType {
     public class CallStackThrowType(public val throwable: Throwable) : CallStackTrackEventType()
 }
 
+@OptIn(ExperimentalAtomicApi::class)
 public fun trackingCallStacks(block: suspend () -> Unit): Flow<CallStackTrackEvent> = channelFlow {
+    val nodeCounter = AtomicInt(0)
     suspend fun sendOnFlowScope(callStackTrackEvent: CallStackTrackEvent) {
         try {
             send(callStackTrackEvent)
@@ -34,7 +42,7 @@ public fun trackingCallStacks(block: suspend () -> Unit): Flow<CallStackTrackEve
     }
     fun CallTreeNode?.toStackTrackedCoroutineContext(): StackTrackingContext = object : StackTrackingContext {
         override suspend fun <T> track(functionFqn: String, child: suspend () -> T): T {
-            val childNode = CallTreeNode(functionFqn, this@toStackTrackedCoroutineContext)
+            val childNode = CallTreeNode(nodeCounter.incrementAndFetch(), functionFqn, this@toStackTrackedCoroutineContext)
             sendOnFlowScope(CallStackTrackEvent(childNode, CallStackTrackEventType.CallStackPushType(functionFqn)))
             return try {
                 withContext(childNode.toStackTrackedCoroutineContext()) {
