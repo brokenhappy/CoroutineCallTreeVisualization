@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.SYNTHETIC_OFFSET
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
+import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.isSuspend
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
@@ -47,6 +48,7 @@ class CallStackTrackingTransformer(private val context: IrPluginContext) : IrVis
     }
 
     override fun visitFunction(declaration: IrFunction) {
+        if (declaration.hasAnnotation(FqName("com.woutwerkman.calltreevisualizer.NonTracked"))) return
         if (!declaration.isSuspend) return
         if (declaration.isInline) return
         val statements = when (val body = declaration.body) {
