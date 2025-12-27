@@ -2,7 +2,7 @@
 # https://github.com/JetBrains/kotlin
 kotlin = "2.2.20"
 coroutines = "1.10.2"
-shadowroutines = "0.0.1-SNAPSHOT"
+shadowroutines = "0.0.2-SNAPSHOT"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinx-immutable = "0.4.0"
 
