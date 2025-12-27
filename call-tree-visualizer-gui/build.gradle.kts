@@ -18,8 +18,13 @@ dependencies {
     implementation(project(":examples"))
     implementation(project(":tracked-call-tree-as-flow"))
     implementation(compose.desktop.currentOs)
+    implementation(compose.components.resources)
     implementation(libs.kotlinx.immutable.collections)
     implementation(libs.kotlinx.coroutines.swing)
+}
+
+compose.resources {
+    generateResClass = always
 }
 
 kotlin {
