@@ -1,6 +1,7 @@
 package com.woutwerkman.calltreevisualizer.coroutineintegration
 
 import com.woutwerkman.calltreevisualizer.StackTrackingContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
@@ -28,7 +29,9 @@ public sealed class CallStackTrackEventType {
 }
 
 @OptIn(ExperimentalAtomicApi::class)
-public fun trackingCallStacks(block: suspend () -> Unit): Flow<CallStackTrackEvent> = channelFlow {
+public fun trackingCallStacks(
+    block: suspend CoroutineScope.(rootNode: StackTrackingContext) -> Unit,
+): Flow<CallStackTrackEvent> = channelFlow {
     val nodeCounter = AtomicInt(0)
     suspend fun sendOnFlowScope(callStackTrackEvent: CallStackTrackEvent) {
         try {
@@ -55,7 +58,8 @@ public fun trackingCallStacks(block: suspend () -> Unit): Flow<CallStackTrackEve
         }
     }
 
-    withContext(null.toStackTrackedCoroutineContext()) {
-        block()
+    val rootTracker = null.toStackTrackedCoroutineContext()
+    withContext(rootTracker) {
+        block(rootTracker)
     }
 }.buffer(RENDEZVOUS)
