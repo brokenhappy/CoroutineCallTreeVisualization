@@ -25,7 +25,7 @@ internal fun Settings(currentConfig: Config, onConfigChange: (Config) -> Unit) {
         Slider(
             value = (currentConfig.speed ?: DefaultSpeed).toFloat(),
             enabled = currentConfig.speed != null,
-            valueRange = 1.0f..500.0f,
+            valueRange = 0.0f..500.0f,
             onValueChange = { onConfigChange(currentConfig.copy(speed = it.roundToInt())) },
         )
     }

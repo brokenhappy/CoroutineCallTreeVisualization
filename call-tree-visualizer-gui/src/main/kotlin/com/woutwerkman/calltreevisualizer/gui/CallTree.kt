@@ -153,6 +153,7 @@ fun CallTreeUI(programState: CallTree) {
 private suspend fun Flow<Config>.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(moment: Instant) {
     mapLatest { config ->
         config.speed?.let { speed ->
+            if (speed == 0) awaitCancellation()
             (Clock.System.now() - moment)
                 .let { timeSinceLastElement -> 1.seconds / speed - timeSinceLastElement }
                 .takeIf { it > 0.seconds }
