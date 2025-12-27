@@ -1,17 +1,7 @@
 package com.woutwerkman.calltreevisualizer
 
-import groupingBy
-import kotlinhax.shadowroutines.async
-import kotlinhax.shadowroutines.launch
-import kotlinhax.shadowroutines.coroutineScope
-import map
-import reduce
-import susSequence
-import suseLines
-import toList
-import java.io.File
+import kotlinhax.shadowroutines.*
 import kotlin.io.path.Path
-import kotlin.io.path.toPath
 
 data class Measurement(
     private val _city: String,

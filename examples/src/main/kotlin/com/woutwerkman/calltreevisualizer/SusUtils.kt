@@ -1,3 +1,5 @@
+package com.woutwerkman.calltreevisualizer
+
 import java.io.BufferedReader
 import java.nio.charset.Charset
 import java.nio.file.Files
