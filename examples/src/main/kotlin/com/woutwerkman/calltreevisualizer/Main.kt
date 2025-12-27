@@ -51,6 +51,21 @@ suspend fun foobs() {}
 public suspend fun runGlobalScopeTracker(tracker: StackTrackingContext): Nothing =
     kotlinhax.shadowroutines.runGlobalScopeTracker(tracker)
 
+suspend fun recurse(a: Int) {
+    if (a <= 0) error("AAAH")
+    recurse(a - 1)
+}
+
+suspend fun linearExplosion() {
+    repeat(10) {
+        try {
+            recurse(10)
+        } catch (_: Throwable) {
+            // ... Continue
+        }
+    }
+}
+
 suspend fun measureLinearlyWithUnstructuredConcurrency() {
     val tasks = (0..3).map {
         GlobalScope.launch { measureLinearly() }

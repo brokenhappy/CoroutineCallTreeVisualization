@@ -32,7 +32,12 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 data class CallTree(val nodes: PersistentMap<Int, Node>, val roots: PersistentList<Int>) {
-    data class Node(val id: Int, val name: String, val childIds: PersistentList<Int>)
+    data class Node(val id: Int, val type: Type, val childIds: PersistentList<Int>) {
+        sealed class Type {
+            data class Normal(val name: String) : Type()
+            data class ThrewException(val parentId: Int?) : Type()
+        }
+    }
 }
 
 
@@ -51,25 +56,29 @@ fun CallTreeUI(config: Flow<Config>, program: suspend () -> Unit) {
                 job.cancelAndJoin()
             }.collect { (node, event) ->
                 val newTree = when (event) {
-                    CallStackTrackEventType.CallStackPopType -> when (val parent = node.parent) {
-                        null -> tree.copy(roots = tree.roots.remove(node.id))
-                        else -> tree.copy(
-                            nodes = tree
-                                .nodes
-                                .remove(node.id)
-                                .update(parent.id) { it!!.copy(childIds = it.childIds.remove(node.id)) },
-                        )
-                    }
-                    is CallStackTrackEventType.CallStackThrowType,
+                    is CallStackTrackEventType.CallStackThrowType -> tree.copy(
+                        nodes = tree
+                            .nodes
+                            .update(node.id) { it!!.copy(type = CallTree.Node.Type.ThrewException(node.parent?.id)) },
+                    )
+                    CallStackTrackEventType.CallStackPopType -> tree.removeNode(node.id, node.parent?.id)
                     is CallStackTrackEventType.CallStackPushType -> when (val parent = node.parent) {
                         null -> tree.copy(
-                            nodes = tree.nodes.put(node.id, CallTree.Node(node.id, node.functionFqn, persistentListOf())),
+                            nodes = tree.nodes.put(node.id, CallTree.Node(
+                                id = node.id,
+                                type = CallTree.Node.Type.Normal(node.functionFqn),
+                                childIds = persistentListOf(),
+                            )),
                             roots = tree.roots.add(node.id),
                         )
                         else -> tree.copy(
                             nodes = tree
                                 .nodes
-                                .put(node.id, CallTree.Node(node.id, node.functionFqn, persistentListOf()))
+                                .put(node.id, CallTree.Node(
+                                    id = node.id,
+                                    type = CallTree.Node.Type.Normal(node.functionFqn),
+                                    childIds = persistentListOf(),
+                                ))
                                 .update(parent.id) { it!!.copy(childIds = it.childIds.add(node.id)) }
                         )
                     }
@@ -82,11 +91,22 @@ fun CallTreeUI(config: Flow<Config>, program: suspend () -> Unit) {
             }
         }
     }
-    CallTreeUI(tree)
+    CallTreeUI(tree, onExplosionDone = { childNodeId, parentNodeId ->
+        tree = tree.removeNode(childNodeId, parentNodeId)
+    })
+}
+
+private fun CallTree.removeNode(childNodeId: Int, parentNodeId: Int?): CallTree = when (parentNodeId) {
+    null -> copy(roots = roots.remove(childNodeId))
+    else -> copy(
+        nodes = nodes
+            .remove(childNodeId)
+            .update(parentNodeId) { it!!.copy(childIds = it.childIds.remove(childNodeId)) },
+    )
 }
 
 @Composable
-fun CallTreeUI(programState: CallTree) {
+fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, parentNodeId: Int) -> Unit) {
     @Composable
     fun DrawNode(node: CallTree.Node) {
         Column(
@@ -97,7 +117,7 @@ fun CallTreeUI(programState: CallTree) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.Bottom,
             ) {
-                generateSequence(node) { it.childIds.singleOrNull().let { programState.nodes[it] } }
+                generateSequence(node) { it.childIds.singleOrNull()?.let { programState.nodes[it] } }
                     .last()
                     .childIds
                     .forEach { childId ->
@@ -111,27 +131,32 @@ fun CallTreeUI(programState: CallTree) {
                     .border(1.dp, Color.Black, RoundedCornerShape(4.dp)),
                 verticalArrangement = Arrangement.Bottom,
             ) {
-                generateSequence(node) { it.childIds.singleOrNull().let { programState.nodes[it] } }
+                generateSequence(node) { it.childIds.singleOrNull()?.let { programState.nodes[it] } }
                     .toList()
                     .asReversed()
                     .forEach { node ->
                         if (node.childIds.size == 1) {
                             Box(modifier = Modifier.background(Color.Black).size(134.dp, 1.dp))
                         }
-                        Box(
-                            modifier = Modifier
-                                .background(Color.LightGray)
-                                .padding(horizontal = 5.dp, vertical = 0.dp)
-                                .padding(2.dp)
-                                .width(120.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = node.name.substringAfterLast("."),
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+
+                        when (node.type) {
+                            is CallTree.Node.Type.Normal -> Box(
+                                modifier = Modifier
+                                    .background(Color.LightGray)
+                                    .padding(horizontal = 5.dp, vertical = 0.dp)
+                                    .padding(2.dp)
+                                    .width(120.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = node.type.name.substringAfterLast("."),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            is CallTree.Node.Type.ThrewException ->
+                                TODO("Render Gif animation and then call onExplosionDone")
                         }
                     }
             }

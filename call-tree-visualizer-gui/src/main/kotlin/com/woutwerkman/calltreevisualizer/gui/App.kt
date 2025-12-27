@@ -8,6 +8,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
+import com.woutwerkman.calltreevisualizer.linearExplosion
 import com.woutwerkman.calltreevisualizer.measureLinearlyWithUnstructuredConcurrency
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -41,7 +42,7 @@ private suspend fun runApp(currentConfig: Flow<Config>, onConfigChange: (Config)
                 if (settingsIsOpen) {
                     Settings(config, onConfigChange)
                 }
-                CallTreeUI(currentConfig, program = { measureLinearlyWithUnstructuredConcurrency() })
+                CallTreeUI(currentConfig, program = { linearExplosion() })
             }
         }
     }
