@@ -18,6 +18,8 @@ dependencies {
     implementation(project(":examples"))
     implementation(project(":tracked-call-tree-as-flow"))
     implementation(compose.desktop.currentOs)
+    implementation(libs.kotlinx.immutable.collections)
+    implementation(libs.kotlinx.coroutines.swing)
 }
 
 kotlin {

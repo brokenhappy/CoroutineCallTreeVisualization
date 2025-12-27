@@ -3,6 +3,8 @@
 kotlin = "2.2.20"
 coroutines = "1.10.2"
 shadowroutines = "0.0.1-SNAPSHOT"
+# https://github.com/Kotlin/kotlinx.collections.immutable
+kotlinx-immutable = "0.4.0"
 
 # https://github.com/Kotlin/binary-compatibility-validator
 kotlin-binaryCompatibilityValidator = "0.16.3"
@@ -20,8 +22,10 @@ compose-plugin = "1.8.2"
 [libraries]
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
-kotlinhax-shadowroutines-core = { group = "com.woutwerkman.kotlinhax", name = "kotlinhax-shadowroutines-core", version.ref = "shadowroutines" }
+kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-immutable-collections = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version.ref = "kotlinx-immutable" }
+kotlinhax-shadowroutines-core = { group = "com.woutwerkman.kotlinhax", name = "kotlinhax-shadowroutines-core", version.ref = "shadowroutines" }
 kotlin-script-runtime = { group = "org.jetbrains.kotlin", name = "kotlin-script-runtime", version.ref = "kotlin" }
 kotlin-test-junit5 = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit5", version.ref = "kotlin" }
 kotlin-test-framework = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-internal-test-framework", version.ref = "kotlin" }
