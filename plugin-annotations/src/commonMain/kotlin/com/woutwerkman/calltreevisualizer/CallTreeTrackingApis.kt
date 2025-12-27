@@ -3,6 +3,8 @@ package com.woutwerkman.calltreevisualizer
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.SOURCE)
 public annotation class NonTracked
 
 public interface StackTrackingContext: CoroutineContext.Element {
