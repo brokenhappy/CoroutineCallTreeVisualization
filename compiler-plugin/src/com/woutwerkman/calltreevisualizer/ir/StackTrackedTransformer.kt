@@ -55,8 +55,6 @@ class CallStackTrackingTransformer(private val context: IrPluginContext) : IrVis
             is IrSyntheticBody, null -> return // Don't care
         }
 
-        // Update return statements to target the lambda instead
-
         declaration.body = factory.createExpressionBody(
             expression = createCallExpression(
                 type = declaration.returnType,
