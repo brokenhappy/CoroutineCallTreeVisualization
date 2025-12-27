@@ -154,10 +154,8 @@ private suspend fun Flow<Config>.waitUntilItsTimeForNextElementGivenThatLastElem
     mapLatest { config ->
         config.speed?.let { speed ->
             if (speed == 0) awaitCancellation()
-            (Clock.System.now() - moment)
-                .let { timeSinceLastElement -> 1.seconds / speed - timeSinceLastElement }
-                .takeIf { it > 0.seconds }
-                ?.let { delay(it) }
+            val timeSinceLastElement = Clock.System.now() - moment
+            delay(1.seconds / speed - timeSinceLastElement)
         }
     }.first()
 }
