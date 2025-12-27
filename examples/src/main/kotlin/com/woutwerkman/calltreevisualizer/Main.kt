@@ -47,6 +47,22 @@ suspend fun baz() {
 
 suspend fun foobs() {}
 
+@NonTracked
+public suspend fun runGlobalScopeTracker(tracker: StackTrackingContext): Nothing =
+    kotlinhax.shadowroutines.runGlobalScopeTracker(tracker)
+
+suspend fun measureLinearlyWithUnstructuredConcurrency() {
+    val tasks = (0..3).map {
+        GlobalScope.launch { measureLinearly() }
+    }
+    try {
+        measureLinearly()
+        tasks.forEach { it.join() }
+    } finally {
+        tasks.forEach { it.cancel() }
+    }
+}
+
 suspend fun measureLinearly() {
     Path("/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/examples/src/main/resources/measurements.txt")
 //    (object {})::class
