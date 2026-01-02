@@ -35,7 +35,7 @@ private suspend fun runApp(currentConfig: Flow<Config>, onConfigChange: (Config)
         ) {
             MenuBar {
                 Menu("Help") {
-                    Item("${if (settingsIsOpen) "Close" else "Open"} Settings", onClick = { settingsIsOpen = true })
+                    Item("${if (settingsIsOpen) "Close" else "Open"} Settings", onClick = { settingsIsOpen = !settingsIsOpen })
                 }
             }
             Column {
