@@ -342,7 +342,7 @@ private suspend fun Flow<Config>.waitUntilItsTimeForNextElementGivenThatLastElem
                     coroutineScope {
                         val timeoutJob = launch { delay(delayTime) }
                         val manualStepJob = launch { manualStepSignals.first() }
-                        select<Unit> {
+                        select {
                             timeoutJob.onJoin { manualStepJob.cancel() }
                             manualStepJob.onJoin { timeoutJob.cancel() }
                         }
