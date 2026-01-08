@@ -35,16 +35,25 @@ private suspend fun runApp(currentConfig: Flow<Config>, onConfigChange: (Config)
                     .also { if (it) settingsIsOpen = !settingsIsOpen }
             },
         ) {
-            MenuBar {
-                Menu("Help") {
-                    Item("${if (settingsIsOpen) "Close" else "Open"} Settings", onClick = { settingsIsOpen = !settingsIsOpen })
-                }
+            val darkTheme = when (config.themeMode) {
+                ThemeMode.System -> androidx.compose.foundation.isSystemInDarkTheme()
+                ThemeMode.Light -> false
+                ThemeMode.Dark -> true
             }
-            Column {
-                if (settingsIsOpen) {
-                    Settings(config, onConfigChange)
+            CallTreeTheme(darkTheme = darkTheme) {
+                MenuBar {
+                    Menu("Help") {
+                        Item("${if (settingsIsOpen) "Close" else "Open"} Settings", onClick = { settingsIsOpen = !settingsIsOpen })
+                    }
                 }
-                CallTreeUI(currentConfig, program = { highlyBranchingCalls() })
+                androidx.compose.material.Surface {
+                    Column {
+                        if (settingsIsOpen) {
+                            Settings(config, onConfigChange)
+                        }
+                        CallTreeUI(currentConfig, program = { highlyBranchingCalls() })
+                    }
+                }
             }
         }
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -153,7 +154,7 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
                 modifier = Modifier
                     .padding(5.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .border(1.dp, Color.Black, RoundedCornerShape(4.dp)),
+                    .border(1.dp, MaterialTheme.colors.onSurface, RoundedCornerShape(4.dp)),
                 verticalArrangement = Arrangement.Bottom,
             ) {
                 generateSequence(node) { it.childIds.singleOrNull()?.let { programState.nodes[it] } }
@@ -161,12 +162,12 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
                     .asReversed()
                     .forEach { node ->
                         if (node.childIds.size == 1) {
-                            Box(modifier = Modifier.background(Color.Black).size(134.dp, 1.dp))
+                            Box(modifier = Modifier.background(MaterialTheme.colors.onSurface).size(134.dp, 1.dp))
                         }
 
                         Box(
                             modifier = Modifier
-                                .background(Color.LightGray)
+                                .background(MaterialTheme.colors.surface)
                                 .padding(horizontal = 5.dp, vertical = 0.dp)
                                 .padding(2.dp)
                                 .width(120.dp)
@@ -202,10 +203,10 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
 
 @Composable
 private fun Explosion() {
-    val drawable = if (isSystemInDarkTheme()) {
-        Res.drawable.Explosion_dark_theme
-    } else {
+    val drawable = if (MaterialTheme.colors.isLight) {
         Res.drawable.Explosion_light_theme
+    } else {
+        Res.drawable.Explosion_dark_theme
     }
     Image(
         painter = painterResource(drawable),
@@ -216,15 +217,16 @@ private fun Explosion() {
 
 @Composable
 private fun FullSizeDiagonalRedCross() {
+    val color = MaterialTheme.colors.error
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawLine(
-            color = Color.Red,
+            color = color,
             start = androidx.compose.ui.geometry.Offset(0f, 0f),
             end = androidx.compose.ui.geometry.Offset(size.width, size.height),
             strokeWidth = 2f,
         )
         drawLine(
-            color = Color.Red,
+            color = color,
             start = androidx.compose.ui.geometry.Offset(size.width, 0f),
             end = androidx.compose.ui.geometry.Offset(0f, size.height),
             strokeWidth = 2f,
