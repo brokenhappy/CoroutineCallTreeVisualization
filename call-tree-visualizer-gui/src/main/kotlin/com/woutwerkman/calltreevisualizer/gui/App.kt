@@ -9,9 +9,6 @@ import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
 import com.woutwerkman.calltreevisualizer.highlyBranchingCalls
-import com.woutwerkman.calltreevisualizer.linearExplosion
-import com.woutwerkman.calltreevisualizer.measureLinearly
-import com.woutwerkman.calltreevisualizer.measureLinearlyWithUnstructuredConcurrency
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
