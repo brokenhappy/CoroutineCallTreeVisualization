@@ -51,6 +51,7 @@ suspend fun baz(bool: Boolean) {
 
 suspend fun foobs(bool: Boolean) {
     if (bool) error("Aaaah!")
+    awaitCancellation()
 }
 
 @NonTracked
