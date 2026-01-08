@@ -12,7 +12,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "compiler-plugin-template"
+rootProject.name = "CoroutineCallTreeVisualization"
 
 include("compiler-plugin")
 include("gradle-plugin")
