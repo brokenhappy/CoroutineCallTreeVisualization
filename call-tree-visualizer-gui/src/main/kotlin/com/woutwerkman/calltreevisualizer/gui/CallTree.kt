@@ -26,9 +26,8 @@ import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStack
 import com.woutwerkman.calltreevisualizer.runGlobalScopeTracker
 import kotlinx.collections.immutable.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.selects.select
 import org.jetbrains.compose.resources.painterResource
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -47,7 +46,7 @@ data class CallTree(val nodes: PersistentMap<Int, Node>, val roots: PersistentLi
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun CallTreeUI(config: Flow<Config>, program: suspend () -> Unit) {
+fun CallTreeUI(config: Flow<Config>, manualStepSignals: Flow<Unit>, program: suspend () -> Unit) {
     var tree by remember { mutableStateOf(CallTree(nodes = persistentMapOf(), roots = persistentListOf())) }
 
     LaunchedEffect(program) {
@@ -103,7 +102,7 @@ fun CallTreeUI(config: Flow<Config>, program: suspend () -> Unit) {
                 withContext(Dispatchers.Main) {
                     tree = newTree
                 }
-                config.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(lastEmission)
+                config.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(lastEmission, manualStepSignals)
                 lastEmission = Clock.System.now()
             }
         }
@@ -249,12 +248,28 @@ private fun CallTree.removeNode(childNodeId: Int, parentNodeId: Int?): CallTree 
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-private suspend fun Flow<Config>.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(moment: Instant) {
+private suspend fun Flow<Config>.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(
+    moment: Instant,
+    manualStepSignals: Flow<Unit>
+) {
     mapLatest { config ->
         config.speed?.let { speed ->
-            if (speed == 0) awaitCancellation()
-            val timeSinceLastElement = Clock.System.now() - moment
-            delay(1.seconds / speed - timeSinceLastElement)
+            if (speed == 0) {
+                manualStepSignals.first()
+            } else {
+                val timeSinceLastElement = Clock.System.now() - moment
+                val delayTime = 1.seconds / speed - timeSinceLastElement
+                if (delayTime.isPositive()) {
+                    coroutineScope {
+                        val timeoutJob = launch { delay(delayTime) }
+                        val manualStepJob = launch { manualStepSignals.first() }
+                        select<Unit> {
+                            timeoutJob.onJoin { manualStepJob.cancel() }
+                            manualStepJob.onJoin { timeoutJob.cancel() }
+                        }
+                    }
+                }
+            }
         }
     }.first()
 }

@@ -14,15 +14,22 @@ import com.woutwerkman.calltreevisualizer.highlyBranchingCalls
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlin.time.ExperimentalTime
 
 @ExperimentalCoroutinesApi
 suspend fun main() {
     val config = MutableStateFlow(Config())
-    runApp(config, onConfigChange = { config.value = it })
+    val manualStepSignals = Channel<Unit>(Channel.CONFLATED)
+    runApp(config, manualStepSignals, onConfigChange = { config.value = it })
 }
 
-private suspend fun runApp(currentConfig: Flow<Config>, onConfigChange: (Config) -> Unit) {
+private suspend fun runApp(
+    currentConfig: Flow<Config>,
+    manualStepSignals: Channel<Unit>,
+    onConfigChange: (Config) -> Unit
+) {
     awaitApplication {
         val config by currentConfig.collectAsState(Config())
         var settingsIsOpen by remember { mutableStateOf(false) }
@@ -30,8 +37,15 @@ private suspend fun runApp(currentConfig: Flow<Config>, onConfigChange: (Config)
             onCloseRequest = ::exitApplication,
             title = "Call Tree Visualizer",
             onKeyEvent = { event ->
-                (event.type == KeyEventType.KeyDown && event.isMetaPressed && event.key == Key.Comma)
-                    .also { if (it) settingsIsOpen = !settingsIsOpen }
+                if (event.type == KeyEventType.KeyDown && event.isMetaPressed && event.key == Key.Comma) {
+                    settingsIsOpen = !settingsIsOpen
+                    true
+                } else if (event.type == KeyEventType.KeyDown && event.key == Key.F8) {
+                    manualStepSignals.trySend(Unit)
+                    true
+                } else {
+                    false
+                }
             },
         ) {
             val darkTheme = when (config.themeMode) {
@@ -50,7 +64,7 @@ private suspend fun runApp(currentConfig: Flow<Config>, onConfigChange: (Config)
                         if (settingsIsOpen) {
                             Settings(config, onConfigChange)
                         }
-                        CallTreeUI(currentConfig, program = { highlyBranchingCalls() })
+                        CallTreeUI(currentConfig, manualStepSignals.receiveAsFlow(), program = { highlyBranchingCalls() })
                     }
                 }
             }
