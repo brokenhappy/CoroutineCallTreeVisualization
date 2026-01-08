@@ -5,7 +5,7 @@ This project provides a set of tools to visualize the execution of Kotlin suspen
 ## Project Structure
 
 - `compiler-plugin`: An IR-based Kotlin compiler plugin that instruments suspend functions.
-- `plugin-annotations`: Public-facing APIs and annotations (e.g., `@NonTracked`) used by the plugin and integration.
+- `stack-tracking-core-api`: Public-facing APIs and annotations (e.g., `@NonTracked`) used by the plugin and integration.
 - `gradle-plugin`: Integrates the compiler plugin into Gradle builds.
 - `tracked-call-tree-as-flow`: Logic to capture instrumented calls and expose them as a `Flow` of events.
 - `call-tree-visualizer-gui`: A Compose Multiplatform application for real-time visualization.
@@ -18,7 +18,7 @@ This project provides a set of tools to visualize the execution of Kotlin suspen
     - If the function is not `@NonTracked`, not `inline`, and has a body, it wraps the entire body in a call to `com.woutwerkman.calltreevisualizer.stackTracked`.
     - `stackTracked` takes the function's Fully Qualified Name (FQN) and the original body as a lambda.
 
-2.  **Tracking Context (`plugin-annotations`):**
+2.  **Tracking Context (`stack-tracking-core-api`):**
     - `stackTracked` looks up a `StackTrackingContext` in the current `coroutineContext`.
     - It delegates the tracking to `StackTrackingContext.track(functionFqn, body)`.
 

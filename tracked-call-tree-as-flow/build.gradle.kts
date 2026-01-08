@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    commonMainApi(project(":plugin-annotations"))
+    commonMainApi(project(":stack-tracking-core-api"))
     commonMainApi(libs.kotlinx.coroutines.core)
 }
 

@@ -16,7 +16,7 @@ rootProject.name = "compiler-plugin-template"
 
 include("compiler-plugin")
 include("gradle-plugin")
-include("plugin-annotations")
+include("stack-tracking-core-api")
 
 include("examples")
 include("tracked-call-tree-as-flow")

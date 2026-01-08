@@ -2,8 +2,8 @@
 // WITH_COROUTINES
 
 import kotlinx.coroutines.flow.toList
-import com.woutwerkman.calltreevisualizer.CallStackTrackEventType
-import com.woutwerkman.calltreevisualizer.trackingCallStacks
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
+import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
 
 @com.woutwerkman.calltreevisualizer.NonTracked
 suspend fun box(): String {

@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation(project(":plugin-annotations"))
+    implementation(project(":stack-tracking-core-api"))
     implementation(libs.kotlinhax.shadowroutines.core)
 }
 

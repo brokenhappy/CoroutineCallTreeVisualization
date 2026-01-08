@@ -24,7 +24,7 @@ idea {
     module.generatedSourceDirs.add(projectDir.resolve("test-gen"))
 }
 
-val annotationsRuntimeClasspath: Configuration by configurations.creating { isTransitive = false }
+val coreApiRuntimeClasspath: Configuration by configurations.creating { isTransitive = false }
 
 dependencies {
     compileOnly(libs.kotlin.compiler)
@@ -33,7 +33,8 @@ dependencies {
     testFixturesApi(libs.kotlin.test.framework)
     testFixturesApi(libs.kotlin.compiler)
 
-    annotationsRuntimeClasspath(project(":plugin-annotations"))
+    coreApiRuntimeClasspath(project(":stack-tracking-core-api"))
+    coreApiRuntimeClasspath(project(":tracked-call-tree-as-flow"))
 
     // Dependencies required to run the internal test framework.
     testRuntimeOnly(libs.junit)
@@ -53,12 +54,12 @@ buildConfig {
 }
 
 tasks.test {
-    dependsOn(annotationsRuntimeClasspath)
+    dependsOn(coreApiRuntimeClasspath)
 
     useJUnitPlatform()
     workingDir = rootDir
 
-    systemProperty("annotationsRuntime.classpath", annotationsRuntimeClasspath.asPath)
+    systemProperty("coreApiRuntime.classpath", coreApiRuntimeClasspath.asPath)
 
     // Properties required to run the internal test framework.
     setLibraryProperty("org.jetbrains.kotlin.test.kotlin-stdlib", "kotlin-stdlib")
