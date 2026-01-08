@@ -2,6 +2,10 @@
 
 package com.woutwerkman.calltreevisualizer.gui
 
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -138,12 +142,89 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.Bottom,
             ) {
-                generateSequence(node) { it.childIds.singleOrNull()?.let { programState.nodes[it] } }
+                val lastNodeWithChildren = generateSequence(node) { it.childIds.singleOrNull()?.let { programState.nodes[it] } }
                     .last()
-                    .childIds
-                    .forEach { childId ->
-                        DrawNode(programState.nodes[childId]!!)
+                val children = lastNodeWithChildren.childIds.map { programState.nodes[it]!! }
+
+                if (children.isNotEmpty()) {
+                    var childCoordinates by remember(children) { mutableStateOf(persistentMapOf<Int, androidx.compose.ui.layout.LayoutCoordinates>()) }
+                    Column(
+                        modifier = Modifier.width(IntrinsicSize.Max),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        var columnCoordinates by remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.Bottom,
+                        ) {
+                            children.forEach { child ->
+                                Box(
+                                    modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
+                                        childCoordinates = childCoordinates.put(child.id, layoutCoordinates)
+                                    }
+                                ) {
+                                    DrawNode(child)
+                                }
+                            }
+                        }
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(24.dp).onGloballyPositioned { columnCoordinates = it }
+                        ) {
+                            Canvas(modifier = Modifier.matchParentSize()) {
+                                val colCoords = columnCoordinates
+                                if (colCoords == null || !colCoords.isAttached) return@Canvas
+
+                                val color = Color.Gray.copy(alpha = 0.5f)
+                                val strokeWidth = 2.dp.toPx()
+                                val midY = size.height / 2
+
+                                // Vertical line to parent
+                                drawLine(
+                                    color = color,
+                                    start = androidx.compose.ui.geometry.Offset(size.width / 2, size.height),
+                                    end = androidx.compose.ui.geometry.Offset(size.width / 2, midY),
+                                    strokeWidth = strokeWidth
+                                )
+
+                                val currentChildXPositions = children.mapNotNull { child ->
+                                    val coords = childCoordinates[child.id]
+                                    if (coords != null && coords.isAttached) {
+                                        child.id to colCoords.localPositionOf(coords, androidx.compose.ui.geometry.Offset.Zero).x + coords.size.width / 2f
+                                    } else null
+                                }.toMap()
+
+                                if (currentChildXPositions.isNotEmpty()) {
+                                    val minX = currentChildXPositions.values.minOrNull() ?: 0f
+                                    val maxX = currentChildXPositions.values.maxOrNull() ?: 0f
+
+                                    // Horizontal line connecting all children
+                                    if (children.size > 1 && currentChildXPositions.size == children.size) {
+                                        drawLine(
+                                            color = color,
+                                            start = androidx.compose.ui.geometry.Offset(minX, midY),
+                                            end = androidx.compose.ui.geometry.Offset(maxX, midY),
+                                            strokeWidth = strokeWidth
+                                        )
+                                    }
+
+                                    // Vertical lines to each child
+                                    children.forEach { child ->
+                                        currentChildXPositions[child.id]?.let { x ->
+                                            drawLine(
+                                                color = color,
+                                                start = androidx.compose.ui.geometry.Offset(x, midY),
+                                                end = androidx.compose.ui.geometry.Offset(x, 0f),
+                                                strokeWidth = strokeWidth
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
+                } else {
+                    // No children, nothing to draw above this node
+                }
             }
             Column(
                 modifier = Modifier
