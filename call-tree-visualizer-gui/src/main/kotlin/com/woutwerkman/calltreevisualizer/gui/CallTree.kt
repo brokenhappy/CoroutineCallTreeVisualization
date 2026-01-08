@@ -2,8 +2,11 @@
 
 package com.woutwerkman.calltreevisualizer.gui
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -15,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.*
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
@@ -28,6 +32,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
+import org.jetbrains.compose.resources.painterResource
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
@@ -197,12 +202,34 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
 
 @Composable
 private fun Explosion() {
-    TODO("Not yet implemented")
+    val drawable = if (isSystemInDarkTheme()) {
+        Res.drawable.Explosion_dark_theme
+    } else {
+        Res.drawable.Explosion_light_theme
+    }
+    Image(
+        painter = painterResource(drawable),
+        contentDescription = "Explosion",
+        modifier = Modifier.fillMaxSize(),
+    )
 }
 
 @Composable
 private fun FullSizeDiagonalRedCross() {
-    TODO("Not yet implemented")
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        drawLine(
+            color = Color.Red,
+            start = androidx.compose.ui.geometry.Offset(0f, 0f),
+            end = androidx.compose.ui.geometry.Offset(size.width, size.height),
+            strokeWidth = 2f,
+        )
+        drawLine(
+            color = Color.Red,
+            start = androidx.compose.ui.geometry.Offset(size.width, 0f),
+            end = androidx.compose.ui.geometry.Offset(0f, size.height),
+            strokeWidth = 2f,
+        )
+    }
 }
 
 private fun CallTree.addThrownException(node: CallTreeNode, wasCancellation: Boolean): CallTree = copy(
