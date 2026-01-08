@@ -5,9 +5,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -26,6 +28,7 @@ public sealed class CallStackTrackEventType {
     public data class CallStackPushType(val functionFqn: String) : CallStackTrackEventType()
     public data object CallStackPopType : CallStackTrackEventType()
     public class CallStackThrowType(public val throwable: Throwable) : CallStackTrackEventType()
+    public object CallStackCancelled : CallStackTrackEventType()
 }
 
 @OptIn(ExperimentalAtomicApi::class)
@@ -52,7 +55,12 @@ public fun trackingCallStacks(
                     child()
                 }.also { sendOnFlowScope(CallStackTrackEvent(childNode, CallStackTrackEventType.CallStackPopType)) }
             } catch (t: Throwable) {
-                sendOnFlowScope(CallStackTrackEvent(childNode, CallStackTrackEventType.CallStackThrowType(t)))
+                sendOnFlowScope(CallStackTrackEvent(
+                    childNode,
+                    if (t is CancellationException && currentCoroutineContext().isActive)
+                        CallStackTrackEventType.CallStackThrowType(t)
+                    else CallStackTrackEventType.CallStackCancelled,
+                ))
                 throw t
             }
         }

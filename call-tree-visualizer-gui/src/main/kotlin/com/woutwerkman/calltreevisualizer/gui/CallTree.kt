@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
 import com.woutwerkman.calltreevisualizer.runGlobalScopeTracker
 import kotlinx.collections.immutable.PersistentList
@@ -35,11 +36,10 @@ data class CallTree(val nodes: PersistentMap<Int, Node>, val roots: PersistentLi
     data class Node(val id: Int, val type: Type, val childIds: PersistentList<Int>) {
         sealed class Type {
             data class Normal(val name: String) : Type()
-            data class ThrewException(val parentId: Int?) : Type()
+            data class ThrewException(val parentId: Int?, val wasCancellation: Boolean) : Type()
         }
     }
 }
-
 
 
 @OptIn(ExperimentalTime::class)
@@ -56,12 +56,9 @@ fun CallTreeUI(config: Flow<Config>, program: suspend () -> Unit) {
                 job.cancelAndJoin()
             }.collect { (node, event) ->
                 val newTree = when (event) {
-                    is CallStackTrackEventType.CallStackThrowType -> tree.copy(
-                        nodes = tree
-                            .nodes
-                            .update(node.id) { it!!.copy(type = CallTree.Node.Type.ThrewException(node.parent?.id)) },
-                    )
-                    CallStackTrackEventType.CallStackPopType -> tree.removeNode(node.id, node.parent?.id)
+                    is CallStackTrackEventType.CallStackThrowType -> tree.addThrownException(node, wasCancellation = false)
+                    is CallStackTrackEventType.CallStackCancelled -> tree.addThrownException(node, wasCancellation = true)
+                    is CallStackTrackEventType.CallStackPopType -> tree.removeNode(node.id, node.parent?.id)
                     is CallStackTrackEventType.CallStackPushType -> when (val parent = node.parent) {
                         null -> tree.copy(
                             nodes = tree.nodes.put(node.id, CallTree.Node(
@@ -96,17 +93,8 @@ fun CallTreeUI(config: Flow<Config>, program: suspend () -> Unit) {
     })
 }
 
-private fun CallTree.removeNode(childNodeId: Int, parentNodeId: Int?): CallTree = when (parentNodeId) {
-    null -> copy(roots = roots.remove(childNodeId))
-    else -> copy(
-        nodes = nodes
-            .remove(childNodeId)
-            .update(parentNodeId) { it!!.copy(childIds = it.childIds.remove(childNodeId)) },
-    )
-}
-
 @Composable
-fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, parentNodeId: Int) -> Unit) {
+fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, parentNodeId: Int?) -> Unit) {
     @Composable
     fun DrawNode(node: CallTree.Node) {
         Column(
@@ -139,24 +127,25 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
                             Box(modifier = Modifier.background(Color.Black).size(134.dp, 1.dp))
                         }
 
-                        when (node.type) {
-                            is CallTree.Node.Type.Normal -> Box(
-                                modifier = Modifier
-                                    .background(Color.LightGray)
-                                    .padding(horizontal = 5.dp, vertical = 0.dp)
-                                    .padding(2.dp)
-                                    .width(120.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
+                        Box(
+                            modifier = Modifier
+                                .background(Color.LightGray)
+                                .padding(horizontal = 5.dp, vertical = 0.dp)
+                                .padding(2.dp)
+                                .width(120.dp)
+                                .height(18.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            when (node.type) {
+                                is CallTree.Node.Type.Normal -> Text(
                                     text = node.type.name.substringAfterLast("."),
                                     textAlign = TextAlign.Center,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
+                                is CallTree.Node.Type.ThrewException if node.type.wasCancellation -> FullSizeDiagonalRedCross()
+                                is CallTree.Node.Type.ThrewException -> Explosion()
                             }
-                            is CallTree.Node.Type.ThrewException ->
-                                TODO("Render Gif animation and then call onExplosionDone")
                         }
                     }
             }
@@ -172,6 +161,31 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
             Spacer(modifier = Modifier.width(10.dp))
         }
     }
+}
+
+@Composable
+private fun Explosion() {
+    TODO("Not yet implemented")
+}
+
+@Composable
+private fun FullSizeDiagonalRedCross() {
+    TODO("Not yet implemented")
+}
+
+private fun CallTree.addThrownException(node: CallTreeNode, wasCancellation: Boolean): CallTree = copy(
+    nodes = nodes.update(node.id) {
+        it!!.copy(type = CallTree.Node.Type.ThrewException(node.parent?.id, wasCancellation))
+    },
+)
+
+private fun CallTree.removeNode(childNodeId: Int, parentNodeId: Int?): CallTree = when (parentNodeId) {
+    null -> copy(roots = roots.remove(childNodeId))
+    else -> copy(
+        nodes = nodes
+            .remove(childNodeId)
+            .update(parentNodeId) { it!!.copy(childIds = it.childIds.remove(childNodeId)) },
+    )
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

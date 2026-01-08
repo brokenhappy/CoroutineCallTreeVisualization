@@ -20,32 +20,38 @@ private suspend fun Measurement.add(other: Measurement): Measurement = copy(
 
 suspend fun highlyBranchingCalls() {
     for (i in (0..100).susSequence()) {
-        foo()
+        try {
+            foo()
+        } catch (t: Throwable) {
+            continue
+        }
     }
 }
 
 suspend fun foo() {
     coroutineScope {
-        launch { bar() }
-        bar()
+        launch { yield(); bar(true) }
+        yield(); bar(false)
     }
 }
 
-suspend fun bar() {
+suspend fun bar(bool: Boolean) {
     coroutineScope {
-        launch { baz() }
-        baz()
+        launch { yield(); baz(false) }
+        yield(); baz(bool)
     }
 }
 
-suspend fun baz() {
+suspend fun baz(bool: Boolean) {
     coroutineScope {
-        launch { foobs() }
-        foobs()
+        launch { yield(); foobs(false) }
+        yield(); foobs(bool)
     }
 }
 
-suspend fun foobs() {}
+suspend fun foobs(bool: Boolean) {
+    if (bool) error("Aaaah!")
+}
 
 @NonTracked
 public suspend fun runGlobalScopeTracker(tracker: StackTrackingContext): Nothing =
