@@ -37,14 +37,16 @@ private suspend fun runApp(
             onCloseRequest = ::exitApplication,
             title = "Call Tree Visualizer",
             onKeyEvent = { event ->
-                if (event.type == KeyEventType.KeyDown && event.isMetaPressed && event.key == Key.Comma) {
-                    settingsIsOpen = !settingsIsOpen
-                    true
-                } else if (event.type == KeyEventType.KeyDown && event.key == Key.F8) {
-                    manualStepSignals.trySend(Unit)
-                    true
-                } else {
-                    false
+                when (event.type) {
+                    KeyEventType.KeyDown if event.isMetaPressed && event.key == Key.Comma -> {
+                        settingsIsOpen = !settingsIsOpen
+                        true
+                    }
+                    KeyEventType.KeyDown if event.key == Key.F8 -> {
+                        manualStepSignals.trySend(Unit)
+                        true
+                    }
+                    else -> false
                 }
             },
         ) {
