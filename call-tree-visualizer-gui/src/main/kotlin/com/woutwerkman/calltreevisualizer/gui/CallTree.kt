@@ -21,6 +21,7 @@ import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStack
 import com.woutwerkman.calltreevisualizer.runGlobalScopeTracker
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.*
@@ -68,16 +69,33 @@ fun CallTreeUI(config: Flow<Config>, program: suspend () -> Unit) {
                             )),
                             roots = tree.roots.add(node.id),
                         )
-                        else -> tree.copy(
-                            nodes = tree
-                                .nodes
-                                .put(node.id, CallTree.Node(
-                                    id = node.id,
-                                    type = CallTree.Node.Type.Normal(node.functionFqn),
-                                    childIds = persistentListOf(),
-                                ))
-                                .update(parent.id) { it!!.copy(childIds = it.childIds.add(node.id)) }
-                        )
+                        else -> {
+                            val childIdsToCut = tree.nodes[parent.id]?.childIds?.filter { tree.nodes[it]?.type !is CallTree.Node.Type.Normal }
+                            val treeAfterExceptionThrowsRemovedByNewChildAddition = if (childIdsToCut.isNullOrEmpty()) {
+                                tree
+                            } else {
+                                tree.copy(
+                                    nodes = tree
+                                        .nodes
+                                        .removeAll(tree.allChildIdsRecursivelyStartingFrom(rootIds = childIdsToCut))
+                                        .update(parent.id) { parentNode -> parentNode!!.copy(childIds = parentNode.childIds.removeAll(childIdsToCut)) },
+                                )
+                            }
+                            treeAfterExceptionThrowsRemovedByNewChildAddition.copy(
+                                nodes = treeAfterExceptionThrowsRemovedByNewChildAddition
+                                    .nodes
+                                    .put(node.id, CallTree.Node(
+                                        id = node.id,
+                                        type = CallTree.Node.Type.Normal(node.functionFqn),
+                                        childIds = persistentListOf(),
+                                    ))
+                                    .update(parent.id) { parentNode ->
+                                        parentNode!!.copy(
+                                            childIds = parentNode.childIds.add(node.id)
+                                        )
+                                    }
+                                )
+                        }
                     }
                 }
                 withContext(Dispatchers.Main) {
@@ -91,6 +109,20 @@ fun CallTreeUI(config: Flow<Config>, program: suspend () -> Unit) {
     CallTreeUI(tree, onExplosionDone = { childNodeId, parentNodeId ->
         tree = tree.removeNode(childNodeId, parentNodeId)
     })
+}
+
+private fun <K, V> PersistentMap<K, V>.removeAll(keysToRemove: List<K>): PersistentMap<K, V> = mutate { builder ->
+    keysToRemove.forEach { key ->
+        builder.remove(key)
+    }
+}
+
+private fun CallTree.allChildIdsRecursivelyStartingFrom(rootIds: List<Int>): List<Int> = buildList {
+    fun Int.visit() {
+        add(this)
+        nodes[this]?.childIds?.forEach { it.visit() }
+    }
+    rootIds.forEach { it.visit() }
 }
 
 @Composable
