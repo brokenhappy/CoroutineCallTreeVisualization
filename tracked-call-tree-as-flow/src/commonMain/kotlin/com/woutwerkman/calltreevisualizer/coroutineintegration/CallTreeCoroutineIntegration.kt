@@ -57,9 +57,9 @@ public fun trackingCallStacks(
             } catch (t: Throwable) {
                 sendOnFlowScope(CallStackTrackEvent(
                     childNode,
-                    if (t is CancellationException && currentCoroutineContext().isActive)
-                        CallStackTrackEventType.CallStackThrowType(t)
-                    else CallStackTrackEventType.CallStackCancelled,
+                    if (t is CancellationException && !currentCoroutineContext().isActive)
+                        CallStackTrackEventType.CallStackCancelled
+                    else CallStackTrackEventType.CallStackThrowType(t),
                 ))
                 throw t
             }
