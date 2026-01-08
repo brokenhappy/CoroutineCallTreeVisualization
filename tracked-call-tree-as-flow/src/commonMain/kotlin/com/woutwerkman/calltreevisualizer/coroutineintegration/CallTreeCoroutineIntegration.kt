@@ -2,14 +2,13 @@ package com.woutwerkman.calltreevisualizer.coroutineintegration
 
 import com.woutwerkman.calltreevisualizer.StackTrackingContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -50,14 +49,17 @@ public fun trackingCallStacks(
         override suspend fun <T> track(functionFqn: String, child: suspend () -> T): T {
             val childNode = CallTreeNode(nodeCounter.incrementAndFetch(), functionFqn, this@toStackTrackedCoroutineContext)
             sendOnFlowScope(CallStackTrackEvent(childNode, CallStackTrackEventType.CallStackPushType(functionFqn)))
+            var iHaveNoClueAtAllWhyThisHelps: Job? = null
             return try {
                 withContext(childNode.toStackTrackedCoroutineContext()) {
+                    iHaveNoClueAtAllWhyThisHelps = coroutineContext[Job]
                     child()
                 }.also { sendOnFlowScope(CallStackTrackEvent(childNode, CallStackTrackEventType.CallStackPopType)) }
             } catch (t: Throwable) {
                 sendOnFlowScope(CallStackTrackEvent(
                     childNode,
-                    if (t is CancellationException && !currentCoroutineContext().isActive)
+                    // Using currentCoroutineContext().isActive here is extremely confusing, this works somehow
+                    if (t is CancellationException && iHaveNoClueAtAllWhyThisHelps?.isActive == false)
                         CallStackTrackEventType.CallStackCancelled
                     else CallStackTrackEventType.CallStackThrowType(t),
                 ))
