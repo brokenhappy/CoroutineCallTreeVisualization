@@ -148,9 +148,10 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
             }
             Column(
                 modifier = Modifier
-                    .padding(5.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .border(1.dp, MaterialTheme.colors.onSurface, RoundedCornerShape(4.dp)),
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(1.5.dp, MaterialTheme.colors.primary.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colors.surface),
                 verticalArrangement = Arrangement.Bottom,
             ) {
                 generateSequence(node) { it.childIds.singleOrNull()?.let { programState.nodes[it] } }
@@ -158,16 +159,14 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
                     .asReversed()
                     .forEach { node ->
                         if (node.childIds.size == 1) {
-                            Box(modifier = Modifier.background(MaterialTheme.colors.onSurface).size(134.dp, 1.dp))
+                            Box(modifier = Modifier.background(MaterialTheme.colors.onSurface.copy(alpha = 0.1f)).size(140.dp, 1.dp))
                         }
 
                         Box(
                             modifier = Modifier
-                                .background(MaterialTheme.colors.surface)
-                                .padding(horizontal = 5.dp, vertical = 0.dp)
-                                .padding(2.dp)
-                                .width(120.dp)
-                                .height(18.dp),
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                                .width(132.dp)
+                                .height(24.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             when (node.type) {
@@ -176,6 +175,8 @@ fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, paren
                                     textAlign = TextAlign.Center,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.body1,
+                                    color = MaterialTheme.colors.onSurface
                                 )
                                 is CallTree.Node.Type.ThrewException if node.type.wasCancellation -> FullSizeDiagonalRedCross()
                                 is CallTree.Node.Type.ThrewException -> Explosion()
@@ -214,18 +215,20 @@ private fun Explosion() {
 @Composable
 private fun FullSizeDiagonalRedCross() {
     val color = MaterialTheme.colors.error
-    Canvas(modifier = Modifier.fillMaxSize()) {
+    Canvas(modifier = Modifier.fillMaxSize().padding(4.dp)) {
         drawLine(
             color = color,
             start = androidx.compose.ui.geometry.Offset(0f, 0f),
             end = androidx.compose.ui.geometry.Offset(size.width, size.height),
-            strokeWidth = 2f,
+            strokeWidth = 3f,
+            cap = androidx.compose.ui.graphics.StrokeCap.Round
         )
         drawLine(
             color = color,
             start = androidx.compose.ui.geometry.Offset(size.width, 0f),
             end = androidx.compose.ui.geometry.Offset(0f, size.height),
-            strokeWidth = 2f,
+            strokeWidth = 3f,
+            cap = androidx.compose.ui.graphics.StrokeCap.Round
         )
     }
 }

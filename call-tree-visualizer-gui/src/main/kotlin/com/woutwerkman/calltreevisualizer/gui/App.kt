@@ -3,6 +3,8 @@
 package com.woutwerkman.calltreevisualizer.gui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.window.MenuBar
@@ -43,7 +45,7 @@ private suspend fun runApp(currentConfig: Flow<Config>, onConfigChange: (Config)
                         Item("${if (settingsIsOpen) "Close" else "Open"} Settings", onClick = { settingsIsOpen = !settingsIsOpen })
                     }
                 }
-                androidx.compose.material.Surface {
+                Surface(color = MaterialTheme.colors.background) {
                     Column {
                         if (settingsIsOpen) {
                             Settings(config, onConfigChange)
