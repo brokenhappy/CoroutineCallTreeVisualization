@@ -111,9 +111,7 @@ fun CallTreeUI(config: Flow<Config>, manualStepSignals: Flow<Unit>, program: sus
             }
         }
     }
-    CallTreeUI(tree, onExplosionDone = { childNodeId, parentNodeId ->
-        tree = tree.removeNode(childNodeId, parentNodeId)
-    })
+    CallTreeUI(tree)
 }
 
 private fun <K, V> PersistentMap<K, V>.removeAll(keysToRemove: List<K>): PersistentMap<K, V> = mutate { builder ->
@@ -131,7 +129,7 @@ private fun CallTree.allChildIdsRecursivelyStartingFrom(rootIds: List<Int>): Lis
 }
 
 @Composable
-fun CallTreeUI(programState: CallTree, onExplosionDone: (childNodeId: Int, parentNodeId: Int?) -> Unit) {
+fun CallTreeUI(programState: CallTree) {
     @Composable
     fun DrawNode(node: CallTree.Node) {
         Column(
