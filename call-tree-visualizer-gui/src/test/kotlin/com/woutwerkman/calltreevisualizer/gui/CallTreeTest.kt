@@ -10,9 +10,8 @@ import kotlin.test.assertEquals
 
 class CallTreeTest {
 
-    private fun stubPushEvent(id: Int, fqn: String, parent: CallTreeNode? = null): CallStackTrackEvent {
-        return CallStackTrackEvent(CallTreeNode(id, fqn, parent), CallStackTrackEventType.CallStackPushType(fqn))
-    }
+    private fun stubPushEvent(id: Int, fqn: String, parent: CallTreeNode? = null): CallStackTrackEvent =
+        CallStackTrackEvent(CallTreeNode(id, fqn, parent), CallStackTrackEventType.CallStackPushType(fqn))
 
     @Test
     fun testInitialRoot() {

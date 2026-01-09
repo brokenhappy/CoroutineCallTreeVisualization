@@ -48,9 +48,7 @@ sealed interface BreakpointStep {
 }
 
 class BreakpointProgram(val steps: List<BreakpointStep>) {
-    fun then(program: BreakpointProgram): BreakpointProgram {
-        return BreakpointProgram(steps + program.steps)
-    }
+    fun then(program: BreakpointProgram): BreakpointProgram = BreakpointProgram(steps + program.steps)
 }
 
 fun changeSpeed(eventsPerSecond: Int) = BreakpointProgram(listOf(BreakpointStep.SetSpeed(eventsPerSecond)))
