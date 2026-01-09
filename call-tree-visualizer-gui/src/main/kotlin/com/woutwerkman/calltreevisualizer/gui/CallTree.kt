@@ -30,13 +30,8 @@ import com.woutwerkman.calltreevisualizer.runGlobalScopeTracker
 import kotlinx.collections.immutable.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.mapLatest
 import org.jetbrains.compose.resources.painterResource
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 data class CallTree(val nodes: PersistentMap<Int, Node>, val roots: PersistentList<Int>) {
     data class Node(val id: Int, val type: Type, val childIds: PersistentList<Int>) {
@@ -45,47 +40,47 @@ data class CallTree(val nodes: PersistentMap<Int, Node>, val roots: PersistentLi
             data class ThrewException(val parentId: Int?, val wasCancellation: Boolean) : Type()
         }
     }
+}
 
-    fun updateWithEvent(event: CallStackTrackEvent): CallTree {
-        val (node, eventType) = event
-        return when (eventType) {
-            is CallStackTrackEventType.CallStackThrowType -> addThrownException(node, wasCancellation = false)
-            is CallStackTrackEventType.CallStackCancelled -> addThrownException(node, wasCancellation = true)
-            is CallStackTrackEventType.CallStackPopType -> removeNode(node.id, node.parent?.id)
-            is CallStackTrackEventType.CallStackPushType -> when (val parent = node.parent) {
-                null -> copy(
-                    nodes = nodes.put(node.id, Node(
-                        id = node.id,
-                        type = Node.Type.Normal(node.functionFqn),
-                        childIds = persistentListOf(),
-                    )),
-                    roots = roots.add(node.id),
-                )
-                else -> {
-                    val childIdsToCut = nodes[parent.id]?.childIds?.filter { nodes[it]?.type !is Node.Type.Normal }
-                    val treeAfterCuts = if (childIdsToCut.isNullOrEmpty()) {
-                        this
-                    } else {
-                        copy(
-                            nodes = nodes
-                                .removeAll(allChildIdsRecursivelyStartingFrom(rootIds = childIdsToCut))
-                                .update(parent.id) { parentNode -> parentNode!!.copy(childIds = parentNode.childIds.removeAll(childIdsToCut)) },
-                        )
-                    }
-                    treeAfterCuts.copy(
-                        nodes = treeAfterCuts.nodes
-                            .put(node.id, Node(
-                                id = node.id,
-                                type = Node.Type.Normal(node.functionFqn),
-                                childIds = persistentListOf(),
-                            ))
-                            .update(parent.id) { parentNode ->
-                                parentNode!!.copy(
-                                    childIds = parentNode.childIds.add(node.id)
-                                )
-                            }
+fun CallTree.treeAfter(event: CallStackTrackEvent): CallTree {
+    val (node, eventType) = event
+    return when (eventType) {
+        is CallStackTrackEventType.CallStackThrowType -> addThrownException(node, wasCancellation = false)
+        is CallStackTrackEventType.CallStackCancelled -> addThrownException(node, wasCancellation = true)
+        is CallStackTrackEventType.CallStackPopType -> removeNode(node.id, node.parent?.id)
+        is CallStackTrackEventType.CallStackPushType -> when (val parent = node.parent) {
+            null -> copy(
+                nodes = nodes.put(node.id, CallTree.Node(
+                    id = node.id,
+                    type = CallTree.Node.Type.Normal(node.functionFqn),
+                    childIds = persistentListOf(),
+                )),
+                roots = roots.add(node.id),
+            )
+            else -> {
+                val childIdsToCut = nodes[parent.id]?.childIds?.filter { nodes[it]?.type !is CallTree.Node.Type.Normal }
+                val treeAfterCuts = if (childIdsToCut.isNullOrEmpty()) {
+                    this
+                } else {
+                    copy(
+                        nodes = nodes
+                            .removeAll(allChildIdsRecursivelyStartingFrom(rootIds = childIdsToCut))
+                            .update(parent.id) { parentNode -> parentNode!!.copy(childIds = parentNode.childIds.removeAll(childIdsToCut)) },
                     )
                 }
+                treeAfterCuts.copy(
+                    nodes = treeAfterCuts.nodes
+                        .put(node.id, CallTree.Node(
+                            id = node.id,
+                            type = CallTree.Node.Type.Normal(node.functionFqn),
+                            childIds = persistentListOf(),
+                        ))
+                        .update(parent.id) { parentNode ->
+                            parentNode!!.copy(
+                                childIds = parentNode.childIds.add(node.id)
+                            )
+                        }
+                )
             }
         }
     }

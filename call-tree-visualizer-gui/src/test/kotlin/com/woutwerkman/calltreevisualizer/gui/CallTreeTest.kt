@@ -7,7 +7,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class CallTreeTest {
 
@@ -19,7 +18,7 @@ class CallTreeTest {
     fun testInitialRoot() {
         val tree = CallTree(persistentMapOf(), persistentListOf())
         val event = stubPushEvent(1, "root")
-        val updatedTree = tree.updateWithEvent(event)
+        val updatedTree = tree.treeAfter(event)
         
         assertEquals(1, updatedTree.roots.size)
         assertEquals(1, updatedTree.roots[0])
@@ -30,10 +29,10 @@ class CallTreeTest {
     fun testAddChild() {
         val rootNode = CallTreeNode(1, "root")
         var tree = CallTree(persistentMapOf(), persistentListOf())
-        tree = tree.updateWithEvent(CallStackTrackEvent(rootNode, CallStackTrackEventType.CallStackPushType("root")))
+        tree = tree.treeAfter(CallStackTrackEvent(rootNode, CallStackTrackEventType.CallStackPushType("root")))
         
         val childEvent = stubPushEvent(2, "child", rootNode)
-        val updatedTree = tree.updateWithEvent(childEvent)
+        val updatedTree = tree.treeAfter(childEvent)
         
         assertEquals(1, updatedTree.nodes[1]?.childIds?.size)
         assertEquals(2, updatedTree.nodes[1]?.childIds?.get(0))

@@ -64,7 +64,7 @@ class CallTreeViewModel(
                     }
                 }
 
-                _tree.value = _tree.value.updateWithEvent(event)
+                _tree.value = _tree.value.treeAfter(event)
                 
                 progression.newSpeed?.let { newSpeed ->
                     val currentConf = config.first()
