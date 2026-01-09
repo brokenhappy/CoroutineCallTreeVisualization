@@ -45,26 +45,30 @@ class TreeStateTest {
             clock = FakeClock()
         )
 
-        val job = launch { viewModel.run() }
+        race(
+            {
+                viewModel.run()
+                null /* Program finished */
+            },
+            {
+                for (interaction in interactions) {
+                    when (interaction) {
+                        Interaction.Step -> stepSignals.emit(StepSignal.Step)
+                        Interaction.Resume -> stepSignals.emit(StepSignal.Resume)
+                    }
 
-        for (interaction in interactions) {
-            when (interaction) {
-                Interaction.Step -> stepSignals.emit(StepSignal.Step)
-                Interaction.Resume -> stepSignals.emit(StepSignal.Resume)
-            }
-            
-            // Wait for the interaction to be processed and for the state to settle
-            if (interaction == Interaction.Step) {
-                viewModel.debuggerState.first { it is DebuggerState.WaitingForSingleStep }
-            } else {
-                viewModel.debuggerState.first { it !is DebuggerState.Paused }
-            }
-            viewModel.debuggerState.first { it is DebuggerState.Paused }
-        }
+                    // Wait for the interaction to be processed and for the state to settle
+                    if (interaction == Interaction.Step) {
+                        viewModel.debuggerState.first { it is DebuggerState.WaitingForSingleStep }
+                    } else {
+                        viewModel.debuggerState.first { it !is DebuggerState.Paused }
+                    }
+                    viewModel.debuggerState.first { it is DebuggerState.Paused }
+                }
 
-        val tree = viewModel.tree.value
-        job.cancelAndJoin()
-        tree
+                viewModel.tree.value
+            },
+        )
     }
 
     @Test
@@ -220,3 +224,6 @@ class TreeStateTest {
         }
     }
 }
+
+suspend fun <T> race(vararg tasks: suspend CoroutineScope.() -> T) =
+    channelFlow { tasks.forEach { launch { send(it()) } } }.first()
