@@ -1,6 +1,5 @@
 package com.woutwerkman.calltreevisualizer.test
 
-import com.woutwerkman.calltreevisualizer.NonTracked
 import com.woutwerkman.calltreevisualizer.gui.*
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
 import kotlinx.coroutines.*
@@ -27,7 +26,6 @@ class TreeStateTest {
         data object Resume : Interaction
     }
 
-    @NonTracked
     private suspend fun treeAfterDebuggerProgramOrNullIfProgramFinished(
         program: suspend () -> Unit,
         debuggerProgram: BreakpointProgram,
@@ -70,7 +68,6 @@ class TreeStateTest {
     }
 
     @Test
-    @NonTracked
     fun testBreakBeforeVsAfter() = runTest(timeout = 2.seconds) {
         val fqn = "com.woutwerkman.calltreevisualizer.test.foo"
 
@@ -100,7 +97,6 @@ class TreeStateTest {
     }
 
     @Test
-    @NonTracked
     fun testBreakBoth() = runTest(timeout = 2.seconds) {
         val fqn = "com.woutwerkman.calltreevisualizer.test.foo"
 
@@ -115,7 +111,6 @@ class TreeStateTest {
     }
 
     @Test
-    @NonTracked
     fun testBreakAtNextStep() = runTest(timeout = 2.seconds) {
         val tree = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { simpleCall() },
@@ -127,7 +122,6 @@ class TreeStateTest {
     }
 
     @Test
-    @NonTracked
     fun testBranchingCallStructure() = runTest(timeout = 2.seconds) {
         val rootFqn = "com.woutwerkman.calltreevisualizer.test.persistentBranchingCall"
         val foobsFqn = "com.woutwerkman.calltreevisualizer.test.foobsForever"
@@ -149,7 +143,6 @@ class TreeStateTest {
     }
 
     @Test
-    @NonTracked
     fun testThrowingCall() = runTest(timeout = 2.seconds) {
         val fqn = "com.woutwerkman.calltreevisualizer.test.throwingCall"
 
@@ -176,7 +169,6 @@ class TreeStateTest {
     }
 
     @Test
-    @NonTracked
     @Ignore
     fun testCancellingCall() = runTest(timeout = 2.seconds) {
         val fqn = "com.woutwerkman.calltreevisualizer.test.foobsForever"
@@ -192,7 +184,6 @@ class TreeStateTest {
     }
 
     @Test
-    @NonTracked
     fun testChangeSpeedOnlyCalledOnce() = runTest(timeout = 2.seconds) {
         var configChangeCount = 0
         val breakpointProgram = changeSpeed(10).then(breakAfter(functionCall("com.woutwerkman.calltreevisualizer.test.foo")))
