@@ -1,7 +1,6 @@
 package com.woutwerkman.parallelReduceBenchmark
 
 import kotlinx.benchmark.Benchmark
-import kotlinx.benchmark.Param
 import kotlinx.benchmark.Scope
 import kotlinx.benchmark.Setup
 import kotlinx.benchmark.State
@@ -17,13 +16,9 @@ open class ParallelReduceBenchmark {
     private lateinit var list: List<Int>
     private val processorCount = Runtime.getRuntime().availableProcessors()
 
-    @Param("1024")
-//    @Param("128", "256", "512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072")
-    var size: Int = 0
-
     @Setup
     open fun prepare() {
-        list = (0..size).map { (-200..300).random() }
+        list = (0..1_024).map { (-200..300).random() }
     }
 
     @Benchmark
