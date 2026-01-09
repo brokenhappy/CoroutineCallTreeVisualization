@@ -96,14 +96,7 @@ suspend fun measureLinearly() {
                 .reduce { _, acc, it -> it.add(acc) }
                 .values
                 .susSequence()
-                .map {
-                    // TODO: Remove this spoiler!
-                    coroutineScope {
-                        val city = async { it.getCity() }
-                        val totalTemperature = async { it.getTotalTemperature() }
-                        city.await() to totalTemperature.await() / it.getCount()
-                    }
-                }
+                .map { it.getCity() to it.getTotalTemperature() / it.getCount() }
                 .toList()
                 .sortedByDescending { (_, temperature) -> temperature }
                 .joinToString("\n") { (city, temperature) -> "$city: $temperature" }
