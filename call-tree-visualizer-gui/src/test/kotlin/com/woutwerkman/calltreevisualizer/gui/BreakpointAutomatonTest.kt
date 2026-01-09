@@ -5,8 +5,6 @@ import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEve
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 
 class BreakpointAutomatonTest {
 
@@ -16,7 +14,7 @@ class BreakpointAutomatonTest {
 
     @Test
     fun testBreakBefore() {
-        val program = breakBeforeEvent(functionCall("foo"))
+        val program = breakBefore(functionCall("foo"))
         val (automaton, _) = BreakpointAutomaton.create(program)
         
         val event = stubEvent("foo")
@@ -28,7 +26,7 @@ class BreakpointAutomatonTest {
 
     @Test
     fun testBreakAfter() {
-        val program = breakAfterEvent(functionCall("foo"))
+        val program = breakAfter(functionCall("foo"))
         val (automaton, _) = BreakpointAutomaton.create(program)
         
         val event = stubEvent("foo")
@@ -41,7 +39,7 @@ class BreakpointAutomatonTest {
 
     @Test
     fun testBreakBoth() {
-        val program = breakBeforeEvent(functionCall("foo")).then(breakAfterEvent(functionCall("foo")))
+        val program = breakBefore(functionCall("foo")).then(breakAfter(functionCall("foo")))
         val (automaton, _) = BreakpointAutomaton.create(program)
         
         val event = stubEvent("foo")
@@ -53,7 +51,7 @@ class BreakpointAutomatonTest {
 
     @Test
     fun testChangeSpeed() {
-        val program = changeSpeed(10).then(breakBeforeEvent(functionCall("foo")))
+        val program = changeSpeed(10).then(breakBefore(functionCall("foo")))
         val (automaton, initialSpeed) = BreakpointAutomaton.create(program)
         
         assertEquals(10, initialSpeed)

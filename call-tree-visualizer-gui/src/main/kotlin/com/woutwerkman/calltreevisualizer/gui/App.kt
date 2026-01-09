@@ -24,11 +24,11 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 suspend fun main() {
     val breakpointProgram = changeSpeed(10.eventsPerSecond)
-        .then(breakAfterEvent(functionCall(::highlyBranchingCalls)))
+        .then(breakAfter(functionCall(::highlyBranchingCalls)))
         .then(changeSpeed(10.eventsPerSecond))
-        .then(breakBeforeEvent(functionThrows(::foobs)))
+        .then(breakBefore(functionThrows(::foobs)))
         .then(changeSpeed(10.eventsPerSecond))
-        .then(breakBeforeEvent(functionCancels("kotlinhax.shadowroutines.awaitCancellation")))
+        .then(breakBefore(functionCancels("kotlinhax.shadowroutines.awaitCancellation")))
 
     val config = MutableStateFlow(Config())
     val stepSignals = MutableSharedFlow<StepSignal>(replay = 10)

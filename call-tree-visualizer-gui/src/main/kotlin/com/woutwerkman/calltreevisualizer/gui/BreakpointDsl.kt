@@ -56,8 +56,8 @@ class BreakpointProgram(val steps: List<BreakpointStep>) {
 fun changeSpeed(eventsPerSecond: Int) = BreakpointProgram(listOf(BreakpointStep.SetSpeed(eventsPerSecond)))
 val Int.eventsPerSecond get() = this
 
-fun breakBeforeEvent(matcher: BreakpointEventMatcher) = BreakpointProgram(listOf(BreakpointStep.BreakBefore(matcher)))
-fun breakAfterEvent(matcher: BreakpointEventMatcher) = BreakpointProgram(listOf(BreakpointStep.BreakAfter(matcher)))
+fun breakBefore(matcher: BreakpointEventMatcher) = BreakpointProgram(listOf(BreakpointStep.BreakBefore(matcher)))
+fun breakAfter(matcher: BreakpointEventMatcher) = BreakpointProgram(listOf(BreakpointStep.BreakAfter(matcher)))
 fun breakAtNextStep() = BreakpointProgram(listOf(BreakpointStep.BreakBefore(NextStepMatcher)))
 
 fun BreakpointStep.toProgram() = BreakpointProgram(listOf(this))

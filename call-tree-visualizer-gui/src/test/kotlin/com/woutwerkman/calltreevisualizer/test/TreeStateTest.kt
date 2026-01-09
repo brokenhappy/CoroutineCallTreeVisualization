@@ -3,10 +3,6 @@ package com.woutwerkman.calltreevisualizer.test
 import com.woutwerkman.calltreevisualizer.NonTracked
 import com.woutwerkman.calltreevisualizer.gui.*
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
-import com.woutwerkman.calltreevisualizer.test.simpleCall
-import com.woutwerkman.calltreevisualizer.test.persistentBranchingCall
-import com.woutwerkman.calltreevisualizer.test.throwingCall
-import com.woutwerkman.calltreevisualizer.test.cancellingCall
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.runTest
@@ -81,21 +77,21 @@ class TreeStateTest {
         // Break Before
         val beforeTree = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { simpleCall() },
-            debuggerProgram = breakBeforeEvent(functionCall(fqn)),
+            debuggerProgram = breakBefore(functionCall(fqn)),
             interactions = listOf(Interaction.Resume)
         )!!
 
         // Break After
         val afterTree = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { simpleCall() },
-            debuggerProgram = breakAfterEvent(functionCall(fqn)),
+            debuggerProgram = breakAfter(functionCall(fqn)),
             interactions = listOf(Interaction.Resume)
         )!!
 
         // Before + F8 should equal After
         val beforePlusStepTree = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { simpleCall() },
-            debuggerProgram = breakBeforeEvent(functionCall(fqn)),
+            debuggerProgram = breakBefore(functionCall(fqn)),
             interactions = listOf(Interaction.Resume, Interaction.Step)
         )!!
 
@@ -110,7 +106,7 @@ class TreeStateTest {
 
         val tree = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { simpleCall() },
-            debuggerProgram = breakBeforeEvent(functionCall(fqn)).then(breakAfterEvent(functionCall(fqn))),
+            debuggerProgram = breakBefore(functionCall(fqn)).then(breakAfter(functionCall(fqn))),
             interactions = listOf(Interaction.Resume)
         )!!
 
@@ -139,7 +135,7 @@ class TreeStateTest {
         // Wait until first foobs is called (break AFTER)
         val finalTree = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { persistentBranchingCall() },
-            debuggerProgram = breakAfterEvent(functionCall(foobsFqn)),
+            debuggerProgram = breakAfter(functionCall(foobsFqn)),
             interactions = listOf(Interaction.Resume)
         )!!
 
@@ -160,7 +156,7 @@ class TreeStateTest {
         // Pause when it's about to throw
         val treeBefore = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { try { throwingCall() } catch (e: Exception) {} },
-            debuggerProgram = breakBeforeEvent(functionThrows(fqn)),
+            debuggerProgram = breakBefore(functionThrows(fqn)),
             interactions = listOf(Interaction.Resume)
         )!!
 
@@ -171,7 +167,7 @@ class TreeStateTest {
         // Pause after it has thrown
         val treeAfter = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { try { throwingCall() } catch (e: Exception) {} },
-            debuggerProgram = breakAfterEvent(functionThrows(fqn)),
+            debuggerProgram = breakAfter(functionThrows(fqn)),
             interactions = listOf(Interaction.Resume)
         )!!
 
@@ -187,7 +183,7 @@ class TreeStateTest {
 
         val treeAfter = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { cancellingCall() },
-            debuggerProgram = breakAfterEvent(functionCancels(fqn)),
+            debuggerProgram = breakAfter(functionCancels(fqn)),
             interactions = listOf(Interaction.Resume)
         )!!
 
@@ -199,7 +195,7 @@ class TreeStateTest {
     @NonTracked
     fun testChangeSpeedOnlyCalledOnce() = runTest(timeout = 2.seconds) {
         var configChangeCount = 0
-        val breakpointProgram = changeSpeed(10).then(breakAfterEvent(functionCall("com.woutwerkman.calltreevisualizer.test.foo")))
+        val breakpointProgram = changeSpeed(10).then(breakAfter(functionCall("com.woutwerkman.calltreevisualizer.test.foo")))
 
         val config = MutableStateFlow(Config())
         val stepSignals = MutableSharedFlow<StepSignal>(replay = 1)
