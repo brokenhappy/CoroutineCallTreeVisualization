@@ -15,6 +15,8 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(project(":programs-for-tests"))
     implementation(project(":examples"))
     implementation(project(":tracked-call-tree-as-flow"))
     implementation(compose.desktop.currentOs)

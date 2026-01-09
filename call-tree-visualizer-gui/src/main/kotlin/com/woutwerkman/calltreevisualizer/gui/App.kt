@@ -14,25 +14,35 @@ import com.woutwerkman.calltreevisualizer.highlyBranchingCalls
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import kotlin.time.ExperimentalTime
 
 @ExperimentalCoroutinesApi
 suspend fun main() {
+    val breakpointProgram = changeSpeed(10.eventsPerSecond)
+        .then(breakAfterEvent(functionCall("com.woutwerkman.calltreevisualizer.highlyBranchingCalls")))
+        .then(changeSpeed(10.eventsPerSecond))
+        .then(breakBeforeEvent(functionThrows("com.woutwerkman.calltreevisualizer.foobs")))
+        .then(breakAtNextStep())
+        .then(changeSpeed(10.eventsPerSecond))
+        .then(breakBeforeEvent(functionCancels("kotlinhax.shadowroutines.awaitCancellation")))
+
     val config = MutableStateFlow(Config())
-    val manualStepSignals = Channel<Unit>(Channel.CONFLATED)
-    runApp(config, manualStepSignals, onConfigChange = { config.value = it })
+    val stepSignals = MutableSharedFlow<StepSignal>(replay = 10)
+    runApp(config, stepSignals, breakpointProgram, onConfigChange = { config.value = it })
 }
 
 private suspend fun runApp(
     currentConfig: Flow<Config>,
-    manualStepSignals: Channel<Unit>,
+    stepSignals: MutableSharedFlow<StepSignal>,
+    breakpointProgram: BreakpointProgram,
     onConfigChange: (Config) -> Unit
 ) {
     awaitApplication {
         val config by currentConfig.collectAsState(Config())
         var settingsIsOpen by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
         Window(
             onCloseRequest = ::exitApplication,
             title = "Call Tree Visualizer",
@@ -43,7 +53,11 @@ private suspend fun runApp(
                         true
                     }
                     KeyEventType.KeyDown if event.key == Key.F8 -> {
-                        manualStepSignals.trySend(Unit)
+                        scope.launch { stepSignals.emit(StepSignal.Step) }
+                        true
+                    }
+                    KeyEventType.KeyDown if event.key == Key.F9 || event.key == Key.R -> {
+                        scope.launch { stepSignals.emit(StepSignal.Resume) }
                         true
                     }
                     else -> false
@@ -66,7 +80,7 @@ private suspend fun runApp(
                         if (settingsIsOpen) {
                             Settings(config, onConfigChange)
                         }
-                        CallTreeUI(currentConfig, manualStepSignals.receiveAsFlow(), program = { highlyBranchingCalls() })
+                        CallTreeUI(currentConfig, stepSignals, breakpointProgram, onConfigChange, program = { highlyBranchingCalls() })
                     }
                 }
             }

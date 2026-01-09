@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Explosion_dark_theme
 import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Explosion_light_theme
 import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Res
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
@@ -31,7 +32,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.selects.select
 import org.jetbrains.compose.resources.painterResource
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -45,72 +45,81 @@ data class CallTree(val nodes: PersistentMap<Int, Node>, val roots: PersistentLi
             data class ThrewException(val parentId: Int?, val wasCancellation: Boolean) : Type()
         }
     }
-}
 
-
-@OptIn(ExperimentalTime::class)
-@Composable
-fun CallTreeUI(config: Flow<Config>, manualStepSignals: Flow<Unit>, program: suspend () -> Unit) {
-    var tree by remember { mutableStateOf(CallTree(nodes = persistentMapOf(), roots = persistentListOf())) }
-
-    LaunchedEffect(program) {
-        withContext(Dispatchers.Default) {
-            var lastEmission = Clock.System.now()
-            trackingCallStacks {
-                val job = launch { runGlobalScopeTracker(it) }
-                program()
-                job.cancelAndJoin()
-            }.collect { (node, event) ->
-                val newTree = when (event) {
-                    is CallStackTrackEventType.CallStackThrowType -> tree.addThrownException(node, wasCancellation = false)
-                    is CallStackTrackEventType.CallStackCancelled -> tree.addThrownException(node, wasCancellation = true)
-                    is CallStackTrackEventType.CallStackPopType -> tree.removeNode(node.id, node.parent?.id)
-                    is CallStackTrackEventType.CallStackPushType -> when (val parent = node.parent) {
-                        null -> tree.copy(
-                            nodes = tree.nodes.put(node.id, CallTree.Node(
-                                id = node.id,
-                                type = CallTree.Node.Type.Normal(node.functionFqn),
-                                childIds = persistentListOf(),
-                            )),
-                            roots = tree.roots.add(node.id),
+    fun updateWithEvent(event: CallStackTrackEvent): CallTree {
+        val (node, eventType) = event
+        return when (eventType) {
+            is CallStackTrackEventType.CallStackThrowType -> addThrownException(node, wasCancellation = false)
+            is CallStackTrackEventType.CallStackCancelled -> addThrownException(node, wasCancellation = true)
+            is CallStackTrackEventType.CallStackPopType -> removeNode(node.id, node.parent?.id)
+            is CallStackTrackEventType.CallStackPushType -> when (val parent = node.parent) {
+                null -> copy(
+                    nodes = nodes.put(node.id, Node(
+                        id = node.id,
+                        type = Node.Type.Normal(node.functionFqn),
+                        childIds = persistentListOf(),
+                    )),
+                    roots = roots.add(node.id),
+                )
+                else -> {
+                    val childIdsToCut = nodes[parent.id]?.childIds?.filter { nodes[it]?.type !is Node.Type.Normal }
+                    val treeAfterCuts = if (childIdsToCut.isNullOrEmpty()) {
+                        this
+                    } else {
+                        copy(
+                            nodes = nodes
+                                .removeAll(allChildIdsRecursivelyStartingFrom(rootIds = childIdsToCut))
+                                .update(parent.id) { parentNode -> parentNode!!.copy(childIds = parentNode.childIds.removeAll(childIdsToCut)) },
                         )
-                        else -> {
-                            val childIdsToCut = tree.nodes[parent.id]?.childIds?.filter { tree.nodes[it]?.type !is CallTree.Node.Type.Normal }
-                            val treeAfterExceptionThrowsRemovedByNewChildAddition = if (childIdsToCut.isNullOrEmpty()) {
-                                tree
-                            } else {
-                                tree.copy(
-                                    nodes = tree
-                                        .nodes
-                                        .removeAll(tree.allChildIdsRecursivelyStartingFrom(rootIds = childIdsToCut))
-                                        .update(parent.id) { parentNode -> parentNode!!.copy(childIds = parentNode.childIds.removeAll(childIdsToCut)) },
+                    }
+                    treeAfterCuts.copy(
+                        nodes = treeAfterCuts.nodes
+                            .put(node.id, Node(
+                                id = node.id,
+                                type = Node.Type.Normal(node.functionFqn),
+                                childIds = persistentListOf(),
+                            ))
+                            .update(parent.id) { parentNode ->
+                                parentNode!!.copy(
+                                    childIds = parentNode.childIds.add(node.id)
                                 )
                             }
-                            treeAfterExceptionThrowsRemovedByNewChildAddition.copy(
-                                nodes = treeAfterExceptionThrowsRemovedByNewChildAddition
-                                    .nodes
-                                    .put(node.id, CallTree.Node(
-                                        id = node.id,
-                                        type = CallTree.Node.Type.Normal(node.functionFqn),
-                                        childIds = persistentListOf(),
-                                    ))
-                                    .update(parent.id) { parentNode ->
-                                        parentNode!!.copy(
-                                            childIds = parentNode.childIds.add(node.id)
-                                        )
-                                    }
-                                )
-                        }
-                    }
+                    )
                 }
-                withContext(Dispatchers.Main) {
-                    tree = newTree
-                }
-                config.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(lastEmission, manualStepSignals)
-                lastEmission = Clock.System.now()
             }
         }
     }
+}
+
+@OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
+@Composable
+fun CallTreeUI(
+    config: Flow<Config>,
+    stepSignals: Flow<StepSignal>,
+    breakpointProgram: BreakpointProgram,
+    onConfigChange: (Config) -> Unit,
+    program: suspend () -> Unit
+) {
+    val viewModel = remember(program, breakpointProgram) {
+        CallTreeViewModel(
+            config = config,
+            stepSignals = stepSignals,
+            breakpointProgram = breakpointProgram,
+            onConfigChange = onConfigChange,
+            events = trackingCallStacks {
+                val job = launch { runGlobalScopeTracker(it) }
+                program()
+                job.cancelAndJoin()
+            }
+        )
+    }
+
+    val tree by viewModel.tree.collectAsState()
+
+    LaunchedEffect(viewModel) {
+        viewModel.run()
+    }
+
     CallTreeUI(tree)
 }
 
@@ -326,32 +335,6 @@ private fun CallTree.removeNode(childNodeId: Int, parentNodeId: Int?): CallTree 
     )
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
-private suspend fun Flow<Config>.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(
-    moment: Instant,
-    manualStepSignals: Flow<Unit>
-) {
-    mapLatest { config ->
-        config.speed?.let { speed ->
-            if (speed == 0) {
-                manualStepSignals.first()
-            } else {
-                val timeSinceLastElement = Clock.System.now() - moment
-                val delayTime = 1.seconds / speed - timeSinceLastElement
-                if (delayTime.isPositive()) {
-                    coroutineScope {
-                        val timeoutJob = launch { delay(delayTime) }
-                        val manualStepJob = launch { manualStepSignals.first() }
-                        select {
-                            timeoutJob.onJoin { manualStepJob.cancel() }
-                            manualStepJob.onJoin { timeoutJob.cancel() }
-                        }
-                    }
-                }
-            }
-        }
-    }.first()
-}
 
 private fun <K, V> PersistentMap<K, V>.update(key: K, updater: (V?) -> V): PersistentMap<K, V> =
     put(key, updater(this[key]))
