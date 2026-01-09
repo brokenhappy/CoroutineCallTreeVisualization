@@ -73,9 +73,10 @@ sealed class DebuggerState {
     data object WaitingForSingleStep : DebuggerState()
 
     companion object {
-        fun fromSpeed(speed: Int?, isResumed: Boolean): DebuggerState {
-            if (!isResumed) return Paused
-            return if (speed == null) Unrestrained else RunningAtLimitedSpeed(speed)
+        fun fromSpeed(speed: Int?, isResumed: Boolean): DebuggerState = when {
+            !isResumed -> Paused
+            speed == null -> Unrestrained
+            else -> RunningAtLimitedSpeed(speed)
         }
     }
 }
