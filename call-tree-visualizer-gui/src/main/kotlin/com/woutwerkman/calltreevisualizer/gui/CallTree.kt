@@ -6,6 +6,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
@@ -19,6 +20,13 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Explosion_dark_theme
 import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Explosion_light_theme
 import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Res
@@ -30,8 +38,91 @@ import com.woutwerkman.calltreevisualizer.runGlobalScopeTracker
 import kotlinx.collections.immutable.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import org.jetbrains.compose.resources.painterResource
+import java.awt.Cursor
 import kotlin.time.ExperimentalTime
+
+@Composable
+fun DebuggerControls(
+    debuggerState: DebuggerState,
+    onStep: () -> Unit,
+    onResume: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isPaused = debuggerState is DebuggerState.Paused
+    val canStep = isPaused
+    val canResume = isPaused
+
+    Row(
+        modifier = modifier
+            .padding(16.dp)
+            .background(MaterialTheme.colors.surface.copy(alpha = 0.9f), RoundedCornerShape(8.dp))
+            .border(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val stepColor = if (canStep) Color(0xFF3574F0) else Color.Gray.copy(alpha = 0.4f)
+        val resumeColor = if (canResume) Color(0xFF59A869) else Color.Gray.copy(alpha = 0.4f)
+
+        // Step Button (styled after Step Over)
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .let { if (canStep) it.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))) else it }
+                .let { if (canStep) it.clickable { onStep() } else it }
+                .padding(6.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeWidth = 2.5.dp.toPx()
+                // Curved arrow line
+                val path = Path().apply {
+                    moveTo(0f, size.height * 0.4f)
+                    cubicTo(
+                        size.width * 0.4f, size.height * 0.4f,
+                        size.width * 0.7f, size.height * 0.4f,
+                        size.width * 0.7f, size.height * 0.7f
+                    )
+                }
+                drawPath(
+                    path = path,
+                    color = stepColor,
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                )
+                // Arrow head
+                val headSize = 6.dp.toPx()
+                val headPath = Path().apply {
+                    moveTo(size.width * 0.7f - headSize / 1.5f, size.height * 0.7f - headSize / 2f)
+                    lineTo(size.width * 0.7f, size.height * 0.7f + headSize / 2f)
+                    lineTo(size.width * 0.7f + headSize / 1.5f, size.height * 0.7f - headSize / 2f)
+                }
+                drawPath(headPath, color = stepColor)
+            }
+        }
+
+        // Resume Button (styled after Resume Program)
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .let { if (canResume) it.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))) else it }
+                .let { if (canResume) it.clickable { onResume() } else it }
+                .padding(6.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val path = Path().apply {
+                    moveTo(size.width * 0.25f, size.height * 0.15f)
+                    lineTo(size.width * 0.25f, size.height * 0.85f)
+                    lineTo(size.width * 0.85f, size.height * 0.5f)
+                    close()
+                }
+                drawPath(path, color = resumeColor)
+            }
+        }
+    }
+}
 
 data class CallTree(val nodes: PersistentMap<Int, Node>, val roots: PersistentList<Int>) {
     data class Node(val id: Int, val type: Type, val childIds: PersistentList<Int>) {
@@ -90,7 +181,7 @@ fun CallTree.treeAfter(event: CallStackTrackEvent): CallTree {
 @Composable
 fun CallTreeUI(
     config: Flow<Config>,
-    stepSignals: Flow<StepSignal>,
+    stepSignals: MutableSharedFlow<StepSignal>,
     breakpointProgram: BreakpointProgram,
     onConfigChange: (Config) -> Unit,
     program: suspend () -> Unit
@@ -110,12 +201,21 @@ fun CallTreeUI(
     }
 
     val tree by viewModel.tree.collectAsState()
+    val debuggerState by viewModel.debuggerState.collectAsState()
 
     LaunchedEffect(viewModel) {
         viewModel.run()
     }
 
-    CallTreeUI(tree)
+    Box(modifier = Modifier.fillMaxSize()) {
+        CallTreeUI(tree)
+        DebuggerControls(
+            debuggerState = debuggerState,
+            onStep = { stepSignals.tryEmit(StepSignal.Step) },
+            onResume = { stepSignals.tryEmit(StepSignal.Resume) },
+            modifier = Modifier.align(Alignment.TopEnd)
+        )
+    }
 }
 
 private fun <K, V> PersistentMap<K, V>.removeAll(keysToRemove: List<K>): PersistentMap<K, V> = mutate { builder ->
