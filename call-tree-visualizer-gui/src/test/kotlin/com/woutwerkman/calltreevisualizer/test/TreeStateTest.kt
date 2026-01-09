@@ -2,6 +2,7 @@ package com.woutwerkman.calltreevisualizer.test
 
 import com.woutwerkman.calltreevisualizer.gui.*
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
+import com.woutwerkman.calltreevisualizer.runGlobalScopeTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.runTest
@@ -33,15 +34,16 @@ class TreeStateTest {
     ): CallTree? = coroutineScope {
         val config = MutableStateFlow(Config())
         val stepSignals = MutableSharedFlow<StepSignal>(replay = 1)
-        val events = trackingCallStacks {
-            program()
-        }
         val viewModel = CallTreeViewModel(
             config = config,
             stepSignals = stepSignals,
             breakpointProgram = debuggerProgram,
             onConfigChange = { config.value = it },
-            events = events,
+            events = trackingCallStacks { rootTracker ->
+                val job = launch { runGlobalScopeTracker(rootTracker) }
+                program()
+                job.cancelAndJoin()
+            },
             clock = FakeClock()
         )
 
