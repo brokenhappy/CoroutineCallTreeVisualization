@@ -15,6 +15,7 @@ dependencyResolutionManagement {
 rootProject.name = "CoroutineCallTreeVisualization"
 
 include("compiler-plugin")
+include("benchmarks")
 include("gradle-plugin")
 include("stack-tracking-core-api")
 
