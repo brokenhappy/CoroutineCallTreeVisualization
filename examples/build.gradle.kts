@@ -12,9 +12,9 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
     implementation(project(":stack-tracking-core-api"))
     implementation(libs.kotlinhax.shadowroutines.core)
+    testImplementation(kotlin("test"))
 }
 
 kotlin {
