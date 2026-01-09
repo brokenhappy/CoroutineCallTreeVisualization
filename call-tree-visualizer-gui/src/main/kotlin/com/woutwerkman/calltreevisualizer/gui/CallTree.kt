@@ -283,15 +283,15 @@ fun CallTreeUI(programState: CallTree) {
                                 // Vertical line to parent
                                 drawLine(
                                     color = color,
-                                    start = androidx.compose.ui.geometry.Offset(size.width / 2, size.height),
-                                    end = androidx.compose.ui.geometry.Offset(size.width / 2, midY),
+                                    start = Offset(size.width / 2, size.height),
+                                    end = Offset(size.width / 2, midY),
                                     strokeWidth = strokeWidth
                                 )
 
                                 val currentChildXPositions = children.mapNotNull { child ->
                                     val coords = childCoordinates[child.id]
                                     if (coords != null && coords.isAttached) {
-                                        child.id to colCoords.localPositionOf(coords, androidx.compose.ui.geometry.Offset.Zero).x + coords.size.width / 2f
+                                        child.id to colCoords.localPositionOf(coords, Offset.Zero).x + coords.size.width / 2f
                                     } else null
                                 }.toMap()
 
@@ -303,8 +303,8 @@ fun CallTreeUI(programState: CallTree) {
                                     if (children.size > 1 && currentChildXPositions.size == children.size) {
                                         drawLine(
                                             color = color,
-                                            start = androidx.compose.ui.geometry.Offset(minX, midY),
-                                            end = androidx.compose.ui.geometry.Offset(maxX, midY),
+                                            start = Offset(minX, midY),
+                                            end = Offset(maxX, midY),
                                             strokeWidth = strokeWidth
                                         )
                                     }
@@ -314,8 +314,8 @@ fun CallTreeUI(programState: CallTree) {
                                         currentChildXPositions[child.id]?.let { x ->
                                             drawLine(
                                                 color = color,
-                                                start = androidx.compose.ui.geometry.Offset(x, midY),
-                                                end = androidx.compose.ui.geometry.Offset(x, 0f),
+                                                start = Offset(x, midY),
+                                                end = Offset(x, 0f),
                                                 strokeWidth = strokeWidth
                                             )
                                         }
@@ -400,17 +400,17 @@ private fun FullSizeDiagonalRedCross() {
     Canvas(modifier = Modifier.fillMaxSize().padding(4.dp)) {
         drawLine(
             color = color,
-            start = androidx.compose.ui.geometry.Offset(0f, 0f),
-            end = androidx.compose.ui.geometry.Offset(size.width, size.height),
+            start = Offset(0f, 0f),
+            end = Offset(size.width, size.height),
             strokeWidth = 3f,
-            cap = androidx.compose.ui.graphics.StrokeCap.Round
+            cap = StrokeCap.Round
         )
         drawLine(
             color = color,
-            start = androidx.compose.ui.geometry.Offset(size.width, 0f),
-            end = androidx.compose.ui.geometry.Offset(0f, size.height),
+            start = Offset(size.width, 0f),
+            end = Offset(0f, size.height),
             strokeWidth = 3f,
-            cap = androidx.compose.ui.graphics.StrokeCap.Round
+            cap = StrokeCap.Round
         )
     }
 }
