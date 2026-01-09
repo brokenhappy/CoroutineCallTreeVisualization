@@ -42,8 +42,8 @@ suspend fun highlyBranchingCode() {
 
 suspend fun bar(bool: Boolean) {
     coroutineScope {
-        launch { baz(false) }
-        baz(bool)
+        launch { baz(bool) }
+        baz(false)
     }
 }
 
