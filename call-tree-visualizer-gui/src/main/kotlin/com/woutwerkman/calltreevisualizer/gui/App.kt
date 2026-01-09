@@ -2,7 +2,9 @@
 
 package com.woutwerkman.calltreevisualizer.gui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.Modifier
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.*
@@ -10,6 +12,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
+import com.woutwerkman.calltreevisualizer.foobs
 import com.woutwerkman.calltreevisualizer.highlyBranchingCalls
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -21,10 +24,9 @@ import kotlin.time.ExperimentalTime
 @ExperimentalCoroutinesApi
 suspend fun main() {
     val breakpointProgram = changeSpeed(10.eventsPerSecond)
-        .then(breakAfterEvent(functionCall("com.woutwerkman.calltreevisualizer.highlyBranchingCalls")))
+        .then(breakAfterEvent(functionCall(::highlyBranchingCalls)))
         .then(changeSpeed(10.eventsPerSecond))
-        .then(breakBeforeEvent(functionThrows("com.woutwerkman.calltreevisualizer.foobs")))
-        .then(breakAtNextStep())
+        .then(breakBeforeEvent(functionThrows(::foobs)))
         .then(changeSpeed(10.eventsPerSecond))
         .then(breakBeforeEvent(functionCancels("kotlinhax.shadowroutines.awaitCancellation")))
 
@@ -80,7 +82,15 @@ private suspend fun runApp(
                         if (settingsIsOpen) {
                             Settings(config, onConfigChange)
                         }
-                        CallTreeUI(currentConfig, stepSignals, breakpointProgram, onConfigChange, program = { highlyBranchingCalls() })
+                        Box(modifier = Modifier.weight(1f)) {
+                            CallTreeUI(
+                                config = currentConfig,
+                                stepSignals = stepSignals,
+                                breakpointProgram = breakpointProgram,
+                                onConfigChange = onConfigChange,
+                                program = { highlyBranchingCalls() }
+                            )
+                        }
                     }
                 }
             }

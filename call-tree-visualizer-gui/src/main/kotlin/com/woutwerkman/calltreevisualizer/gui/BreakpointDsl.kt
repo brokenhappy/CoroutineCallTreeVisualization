@@ -2,6 +2,8 @@ package com.woutwerkman.calltreevisualizer.gui
 
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
+import kotlin.reflect.*
+import kotlin.reflect.jvm.javaMethod
 
 sealed interface BreakpointEventMatcher {
     fun matches(event: CallStackTrackEvent): Boolean
@@ -35,6 +37,9 @@ object NextStepMatcher : BreakpointEventMatcher {
 fun functionCall(fqn: String) = FunctionCallMatcher(fqn)
 fun functionThrows(fqn: String) = FunctionThrowsMatcher(fqn)
 fun functionCancels(fqn: String) = FunctionCancelsMatcher(fqn)
+fun functionCall(function: KFunction<Unit>) = FunctionCallMatcher(function.javaMethod!!.declaringClass.packageName + "." + function.name)
+fun functionThrows(function: KFunction<Unit>) = FunctionThrowsMatcher(function.javaMethod!!.declaringClass.packageName + "." + function.name)
+fun functionCancels(function: KFunction<Unit>) = FunctionCancelsMatcher(function.javaMethod!!.declaringClass.packageName + "." + function.name)
 
 sealed interface BreakpointStep {
     data class SetSpeed(val eventsPerSecond: Int) : BreakpointStep

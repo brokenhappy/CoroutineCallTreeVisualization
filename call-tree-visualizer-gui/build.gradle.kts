@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation(kotlin("reflect"))
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(project(":programs-for-tests"))
     implementation(project(":examples"))
