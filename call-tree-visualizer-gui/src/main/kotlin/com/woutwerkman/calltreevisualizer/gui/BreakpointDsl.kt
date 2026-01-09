@@ -75,7 +75,7 @@ sealed class DebuggerState {
     companion object {
         fun fromSpeed(speed: Int?, isResumed: Boolean): DebuggerState {
             if (!isResumed) return Paused
-            return if (speed == null || speed <= 0) Unrestrained else RunningAtLimitedSpeed(speed)
+            return if (speed == null) Unrestrained else RunningAtLimitedSpeed(speed)
         }
     }
 }
