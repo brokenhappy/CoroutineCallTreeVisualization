@@ -18,38 +18,36 @@ private suspend fun Measurement.add(other: Measurement): Measurement = copy(
     _count = other.getCount() + getCount(),
 )
 
-suspend fun highlyBranchingCalls() {
-    for (i in (0..100).susSequence()) {
-        try {
-            foo()
-        } catch (t: Throwable) {
-            continue
-        }
+suspend fun programWithAllTypes() {
+    measureLinearly()
+    linearExplosion()
+    measureLinearlyWithUnstructuredConcurrency()
+    firstStructuredConcurrency()
+    highlyBranchingCode()
+}
+
+suspend fun firstStructuredConcurrency() {
+    coroutineScope {
+        launch { yield(); yield() }
+        yield(); yield()
     }
 }
 
-suspend fun foo() {
+suspend fun highlyBranchingCode() {
     coroutineScope {
-        launch { yield(); bar(true) }
-        yield(); bar(false)
+        launch { bar(true) }
+        bar(false)
     }
 }
 
 suspend fun bar(bool: Boolean) {
     coroutineScope {
-        launch { yield(); baz(false) }
-        yield(); baz(bool)
+        launch { baz(false) }
+        baz(bool)
     }
 }
 
 suspend fun baz(bool: Boolean) {
-    coroutineScope {
-        launch { yield(); foobs(false) }
-        yield(); foobs(bool)
-    }
-}
-
-suspend fun foobs(bool: Boolean) {
     if (bool) error("Aaaah!")
     awaitCancellation()
 }
@@ -64,12 +62,10 @@ suspend fun recurse(a: Int) {
 }
 
 suspend fun linearExplosion() {
-    repeat(10) {
-        try {
-            recurse(10)
-        } catch (_: Throwable) {
-            // ... Continue
-        }
+    try {
+        recurse(10)
+    } catch (_: Throwable) {
+        // ... Continue
     }
 }
 
@@ -101,6 +97,7 @@ suspend fun measureLinearly() {
                 .values
                 .susSequence()
                 .map {
+                    // TODO: Remove this spoiler!
                     coroutineScope {
                         val city = async { it.getCity() }
                         val totalTemperature = async { it.getTotalTemperature() }

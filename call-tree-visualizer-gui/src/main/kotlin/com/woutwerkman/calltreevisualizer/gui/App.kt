@@ -12,8 +12,11 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
-import com.woutwerkman.calltreevisualizer.foobs
-import com.woutwerkman.calltreevisualizer.highlyBranchingCalls
+import com.woutwerkman.calltreevisualizer.baz
+import com.woutwerkman.calltreevisualizer.firstStructuredConcurrency
+import com.woutwerkman.calltreevisualizer.linearExplosion
+import com.woutwerkman.calltreevisualizer.programWithAllTypes
+import com.woutwerkman.calltreevisualizer.recurse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,10 +26,15 @@ import kotlin.time.ExperimentalTime
 
 @ExperimentalCoroutinesApi
 suspend fun main() {
-    val breakpointProgram = changeSpeed(10.eventsPerSecond)
-        .then(breakAfter(functionCall(::highlyBranchingCalls)))
+    val breakpointProgram = changeSpeed(30.eventsPerSecond)
+        .then(breakAfter(functionCall(::linearExplosion)))
+        .then(changeSpeed(30.eventsPerSecond))
+        .then(breakBefore(functionThrows(::recurse)))
+        .then(breakAfter(functionCall(::firstStructuredConcurrency)))
         .then(changeSpeed(10.eventsPerSecond))
-        .then(breakBefore(functionThrows(::foobs)))
+        .then(breakAfter(functionCall("kotlinhax.shadowroutines.coroutineScope")))
+        .then(changeSpeed(10.eventsPerSecond))
+        .then(breakBefore(functionThrows(::baz)))
         .then(changeSpeed(10.eventsPerSecond))
         .then(breakBefore(functionCancels("kotlinhax.shadowroutines.awaitCancellation")))
 
