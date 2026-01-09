@@ -9,6 +9,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
@@ -85,19 +87,23 @@ private suspend fun runApp(
                         Item("${if (settingsIsOpen) "Close" else "Open"} Settings", onClick = { settingsIsOpen = !settingsIsOpen })
                     }
                 }
-                Surface(color = MaterialTheme.colors.background) {
-                    Column {
-                        if (settingsIsOpen) {
-                            Settings(config, onConfigChange)
-                        }
-                        Box(modifier = Modifier.weight(1f)) {
-                            CallTreeUI(
-                                config = currentConfig,
-                                stepSignals = stepSignals,
-                                breakpointProgram = breakpointProgram,
-                                onConfigChange = onConfigChange,
-                                program = { highlyBranchingCalls() }
-                            )
+                CompositionLocalProvider(
+                    LocalDensity provides Density(LocalDensity.current.density * config.zoom)
+                ) {
+                    Surface(color = MaterialTheme.colors.background) {
+                        Column {
+                            if (settingsIsOpen) {
+                                Settings(config, onConfigChange)
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                CallTreeUI(
+                                    config = currentConfig,
+                                    stepSignals = stepSignals,
+                                    breakpointProgram = breakpointProgram,
+                                    onConfigChange = onConfigChange,
+                                    program = { programWithAllTypes() }
+                                )
+                            }
                         }
                     }
                 }

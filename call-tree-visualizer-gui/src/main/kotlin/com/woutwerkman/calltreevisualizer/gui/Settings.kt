@@ -2,15 +2,27 @@ package com.woutwerkman.calltreevisualizer.gui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
 data class Config(
     val speed: Int? = DefaultSpeed,
+    val zoom: Float = 1f,
     val themeMode: ThemeMode = ThemeMode.System,
 )
 
@@ -52,6 +64,37 @@ internal fun Settings(currentConfig: Config, onConfigChange: (Config) -> Unit) {
                 enabled = currentConfig.speed != null,
                 valueRange = 0.0f..500.0f,
                 onValueChange = { onConfigChange(currentConfig.copy(speed = it.roundToInt())) },
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colors.primary,
+                    activeTrackColor = MaterialTheme.colors.primary
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row {
+                Text("Zoom: ", style = MaterialTheme.typography.caption)
+                var textFieldState by remember(currentConfig.zoom) { mutableStateOf(currentConfig.zoom.times(100).roundToInt()) }
+                TextField(
+                    value = textFieldState.toString(),
+                    onValueChange = { newValueString ->
+                        newValueString.toIntOrNull()?.also { textFieldState = it }
+                    },
+                    modifier = Modifier.onKeyEvent { event ->
+                        (event.type == KeyEventType.KeyUp && event.key == Key.Enter).also {
+                            if (it) onConfigChange(currentConfig.copy(zoom = textFieldState.div(100f)))
+                        }
+                    },
+                    colors = TextFieldDefaults.textFieldColors(
+
+                    ),
+                )
+                Text("%", style = MaterialTheme.typography.caption)
+            }
+            Slider(
+                value = currentConfig.zoom,
+                valueRange = 0.1f..8.0f,
+                onValueChange = { onConfigChange(currentConfig.copy(zoom = it)) },
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colors.primary,
                     activeTrackColor = MaterialTheme.colors.primary
