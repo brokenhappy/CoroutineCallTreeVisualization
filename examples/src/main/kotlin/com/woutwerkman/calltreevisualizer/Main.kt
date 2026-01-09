@@ -35,20 +35,20 @@ suspend fun firstStructuredConcurrency() {
 
 suspend fun highlyBranchingCode() {
     coroutineScope {
-        launch { bar(true) }
-        bar(false)
+        launch { bar(shouldThrowInLaunchedCoroutine = true) }
+        bar(shouldThrowInLaunchedCoroutine = false)
     }
 }
 
-suspend fun bar(bool: Boolean) {
+suspend fun bar(shouldThrowInLaunchedCoroutine: Boolean) {
     coroutineScope {
-        launch { baz(bool) }
-        baz(false)
+        launch { baz(shouldThrow = shouldThrowInLaunchedCoroutine) }
+        baz(shouldThrow = false)
     }
 }
 
-suspend fun baz(bool: Boolean) {
-    if (bool) error("Aaaah!")
+suspend fun baz(shouldThrow: Boolean) {
+    if (shouldThrow) error("Aaaah!")
     awaitCancellation()
 }
 
