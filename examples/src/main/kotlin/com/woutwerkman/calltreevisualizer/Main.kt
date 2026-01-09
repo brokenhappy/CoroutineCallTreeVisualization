@@ -28,8 +28,8 @@ suspend fun programWithAllTypes() {
 
 suspend fun firstStructuredConcurrency() {
     coroutineScope {
-        launch { yield(); yield() }
-        yield(); yield()
+        launch { yield() }
+        yield()
     }
 }
 
