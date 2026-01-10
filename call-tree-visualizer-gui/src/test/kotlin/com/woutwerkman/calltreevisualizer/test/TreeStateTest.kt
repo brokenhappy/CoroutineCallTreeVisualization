@@ -22,10 +22,8 @@ class TreeStateTest {
 
     private class TestClock(private val timeSource: TimeSource.WithComparableMarks) : Clock {
         private val startMark = timeSource.markNow()
-        private val startEpochMillis = 0L
-        override fun now() = Instant.fromEpochMilliseconds(
-            startEpochMillis + (timeSource.markNow() - startMark).inWholeMilliseconds
-        )
+        override fun now() =
+            Instant.fromEpochMilliseconds((timeSource.markNow() - startMark).inWholeMilliseconds)
     }
 
     private sealed interface Interaction {
