@@ -5,6 +5,8 @@ import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEve
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class BreakpointAutomatonTest {
 
@@ -18,10 +20,10 @@ class BreakpointAutomatonTest {
         val (automaton, _) = createAutomaton(program)
 
         val event = stubEvent("foo")
-        val progression = progressAutomaton(automaton, event, isResumed = true, currentSpeed = null)
+        val result = progressAutomaton(automaton, event, currentSpeed = null)
 
-        assertEquals(BreakType.BEFORE, progression.breakType)
-        assertEquals(DebuggerState.Paused, progression.nextDebuggerState)
+        assertTrue(result.shouldPauseBefore)
+        assertFalse(result.shouldPauseAfter)
     }
 
     @Test
@@ -30,11 +32,10 @@ class BreakpointAutomatonTest {
         val (automaton, _) = createAutomaton(program)
 
         val event = stubEvent("foo")
-        val progression = progressAutomaton(automaton, event, isResumed = true, currentSpeed = null)
+        val result = progressAutomaton(automaton, event, currentSpeed = null)
 
-        assertEquals(BreakType.AFTER, progression.breakType)
-        // For AFTER, it returns Paused as the next state
-        assertEquals(DebuggerState.Paused, progression.nextDebuggerState)
+        assertFalse(result.shouldPauseBefore)
+        assertTrue(result.shouldPauseAfter)
     }
 
     @Test
@@ -43,10 +44,10 @@ class BreakpointAutomatonTest {
         val (automaton, _) = createAutomaton(program)
 
         val event = stubEvent("foo")
-        val progression = progressAutomaton(automaton, event, isResumed = true, currentSpeed = null)
+        val result = progressAutomaton(automaton, event, currentSpeed = null)
 
-        assertEquals(BreakType.BOTH, progression.breakType)
-        assertEquals(DebuggerState.Paused, progression.nextDebuggerState)
+        assertTrue(result.shouldPauseBefore)
+        assertTrue(result.shouldPauseAfter)
     }
 
     @Test
@@ -57,12 +58,12 @@ class BreakpointAutomatonTest {
         assertEquals(10, initialSpeed)
 
         val event = stubEvent("foo")
-        val progression = progressAutomaton(automaton, event, isResumed = true, currentSpeed = initialSpeed)
-        assertEquals(BreakType.BEFORE, progression.breakType)
-        assertEquals(DebuggerState.Paused, progression.nextDebuggerState)
+        val result = progressAutomaton(automaton, event, currentSpeed = initialSpeed)
+        assertTrue(result.shouldPauseBefore)
 
-        // After resuming
-        val nextState = progressAutomaton(progression.nextAutomaton, stubEvent("bar"), isResumed = true, currentSpeed = initialSpeed).nextDebuggerState
-        assertEquals(DebuggerState.RunningAtLimitedSpeed(10), nextState)
+        // After resuming - the next event should not cause a pause
+        val nextResult = progressAutomaton(result.nextAutomaton, stubEvent("bar"), currentSpeed = initialSpeed)
+        assertFalse(nextResult.shouldPauseBefore)
+        assertFalse(nextResult.shouldPauseAfter)
     }
 }

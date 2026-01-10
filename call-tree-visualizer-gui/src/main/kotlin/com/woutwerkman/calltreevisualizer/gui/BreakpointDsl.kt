@@ -29,6 +29,7 @@ fun BreakpointEventMatcher.matches(event: CallStackTrackEvent): Boolean = when (
     NextStepMatcher -> true
 }
 
+// DSL Constructors
 fun functionCall(fqn: String) = FunctionCallMatcher(fqn)
 fun functionThrows(fqn: String) = FunctionThrowsMatcher(fqn)
 fun functionCancels(fqn: String) = FunctionCancelsMatcher(fqn)
@@ -36,6 +37,7 @@ fun functionCall(function: KFunction<Unit>) = FunctionCallMatcher(function.javaM
 fun functionThrows(function: KFunction<Unit>) = FunctionThrowsMatcher(function.javaMethod!!.declaringClass.packageName + "." + function.name)
 fun functionCancels(function: KFunction<Unit>) = FunctionCancelsMatcher(function.javaMethod!!.declaringClass.packageName + "." + function.name)
 
+// Breakpoint Steps - Using sealed class for natural linked list structure
 sealed class BreakpointSteps {
     data object Empty : BreakpointSteps()
     data class SetSpeed(val eventsPerSecond: Int, val next: BreakpointSteps) : BreakpointSteps()
@@ -50,11 +52,13 @@ fun BreakpointSteps.append(other: BreakpointSteps): BreakpointSteps = when (this
     is BreakpointSteps.BreakAfter -> copy(next = next.append(other))
 }
 
+// Program - Immutable wrapper
 data class BreakpointProgram(val steps: BreakpointSteps)
 
 fun BreakpointProgram.then(program: BreakpointProgram): BreakpointProgram =
     BreakpointProgram(steps.append(program.steps))
 
+// DSL builders
 fun changeSpeed(eventsPerSecond: Int) = BreakpointProgram(BreakpointSteps.SetSpeed(eventsPerSecond, BreakpointSteps.Empty))
 val Int.eventsPerSecond get() = this
 
@@ -62,79 +66,82 @@ fun breakBefore(matcher: BreakpointEventMatcher) = BreakpointProgram(BreakpointS
 fun breakAfter(matcher: BreakpointEventMatcher) = BreakpointProgram(BreakpointSteps.BreakAfter(matcher, BreakpointSteps.Empty))
 fun breakAtNextStep() = BreakpointProgram(BreakpointSteps.BreakBefore(NextStepMatcher, BreakpointSteps.Empty))
 
+// Step Signal
 enum class StepSignal {
     Step, Resume
 }
 
-sealed class DebuggerState {
-    data object Unrestrained : DebuggerState()
-    data class RunningAtLimitedSpeed(val eventsPerSecond: Int) : DebuggerState()
-    data object Paused : DebuggerState()
-    data object WaitingForSingleStep : DebuggerState()
+// Execution control - simpler than DebuggerState
+sealed class ExecutionControl {
+    data object Running : ExecutionControl()
+    data object Paused : ExecutionControl()
+    data object WaitingForSingleStep : ExecutionControl()
 }
 
-fun debuggerStateFromSpeed(speed: Int?, isResumed: Boolean): DebuggerState = when {
-    !isResumed -> DebuggerState.Paused
-    speed == null -> DebuggerState.Unrestrained
-    else -> DebuggerState.RunningAtLimitedSpeed(speed)
-}
+fun ExecutionControl.isRunning(): Boolean = this is ExecutionControl.Running
 
-enum class BreakType {
-    NONE, BEFORE, AFTER, BOTH
-}
-
-fun BreakType.combine(other: BreakType): BreakType = when {
-    this == BreakType.NONE -> other
-    other == BreakType.NONE -> this
-    this == BreakType.BEFORE && other == BreakType.AFTER -> BreakType.BOTH
-    this == BreakType.AFTER && other == BreakType.BEFORE -> BreakType.BOTH
-    else -> this
-}
-
-data class BreakpointProgression(
+// Result of processing an event through the automaton
+data class AutomatonResult(
     val nextAutomaton: BreakpointAutomaton,
-    val nextDebuggerState: DebuggerState,
-    val breakType: BreakType,
-    val newSpeed: Int? = null
+    val shouldPauseBefore: Boolean,
+    val shouldPauseAfter: Boolean,
+    val newSpeed: Int?
 )
 
 data class BreakpointAutomaton(val steps: BreakpointSteps)
 
-private data class ProgressState(
-    val steps: BreakpointSteps,
-    val breakType: BreakType,
-    val speed: Int?,
-    val speedChanged: Boolean
+private data class MatchResult(
+    val remainingSteps: BreakpointSteps,
+    val newSpeed: Int?,
+    val matched: Boolean
 )
 
-private tailrec fun advanceOverSpeedChanges(steps: BreakpointSteps, currentSpeed: Int?): ProgressState =
+// Advance through consecutive SetSpeed steps
+private tailrec fun consumeSpeedChanges(steps: BreakpointSteps, currentSpeed: Int?): Pair<BreakpointSteps, Int?> =
     when (steps) {
-        is BreakpointSteps.SetSpeed -> advanceOverSpeedChanges(steps.next, steps.eventsPerSecond)
-        else -> ProgressState(steps, BreakType.NONE, currentSpeed, currentSpeed != null)
+        is BreakpointSteps.SetSpeed -> consumeSpeedChanges(steps.next, steps.eventsPerSecond)
+        else -> steps to currentSpeed
     }
 
-private fun checkBreakpoint(
+// Try to match a specific breakpoint type at the current step
+private fun tryMatchBreakpointBefore(
     steps: BreakpointSteps,
     event: CallStackTrackEvent,
-    currentBreakType: BreakType,
-    speed: Int?
-): ProgressState = when (steps) {
-    BreakpointSteps.Empty -> ProgressState(steps, currentBreakType, speed, false)
-    is BreakpointSteps.SetSpeed -> advanceOverSpeedChanges(steps, speed)
+    currentSpeed: Int?
+): MatchResult = when (steps) {
+    BreakpointSteps.Empty -> MatchResult(steps, currentSpeed, matched = false)
+    is BreakpointSteps.SetSpeed -> {
+        val (remaining, speed) = consumeSpeedChanges(steps, currentSpeed)
+        MatchResult(remaining, speed, matched = false)
+    }
     is BreakpointSteps.BreakBefore -> {
         if (steps.matcher.matches(event)) {
-            val advanced = advanceOverSpeedChanges(steps.next, speed)
-            advanced.copy(breakType = currentBreakType.combine(BreakType.BEFORE))
+            val (remaining, speed) = consumeSpeedChanges(steps.next, currentSpeed)
+            MatchResult(remaining, speed, matched = true)
         } else {
-            ProgressState(steps, currentBreakType, speed, false)
+            MatchResult(steps, currentSpeed, matched = false)
         }
     }
+    is BreakpointSteps.BreakAfter -> MatchResult(steps, currentSpeed, matched = false)
+}
+
+private fun tryMatchBreakpointAfter(
+    steps: BreakpointSteps,
+    event: CallStackTrackEvent,
+    currentSpeed: Int?
+): MatchResult = when (steps) {
+    BreakpointSteps.Empty -> MatchResult(steps, currentSpeed, matched = false)
+    is BreakpointSteps.SetSpeed -> {
+        val (remaining, speed) = consumeSpeedChanges(steps, currentSpeed)
+        MatchResult(remaining, speed, matched = false)
+    }
+    is BreakpointSteps.BreakBefore -> MatchResult(steps, currentSpeed, matched = false)
     is BreakpointSteps.BreakAfter -> {
         if (steps.matcher.matches(event)) {
-            val advanced = advanceOverSpeedChanges(steps.next, speed)
-            advanced.copy(breakType = currentBreakType.combine(BreakType.AFTER))
+            val (remaining, speed) = consumeSpeedChanges(steps.next, currentSpeed)
+            MatchResult(remaining, speed, matched = true)
         } else {
-            ProgressState(steps, currentBreakType, speed, false)
+            MatchResult(steps, currentSpeed, matched = false)
         }
     }
 }
@@ -142,31 +149,23 @@ private fun checkBreakpoint(
 fun progressAutomaton(
     automaton: BreakpointAutomaton,
     event: CallStackTrackEvent,
-    isResumed: Boolean,
-    currentSpeed: Int?,
-): BreakpointProgression {
-    // Check BreakBefore
-    val afterBefore = checkBreakpoint(automaton.steps, event, BreakType.NONE, currentSpeed)
+    currentSpeed: Int?
+): AutomatonResult {
+    // Try to match BreakBefore
+    val beforeResult = tryMatchBreakpointBefore(automaton.steps, event, currentSpeed)
 
-    // Check BreakAfter (only if BreakBefore didn't match or both can match)
-    val afterBoth = checkBreakpoint(afterBefore.steps, event, afterBefore.breakType, afterBefore.speed)
+    // Try to match BreakAfter on remaining steps
+    val afterResult = tryMatchBreakpointAfter(beforeResult.remainingSteps, event, beforeResult.newSpeed)
 
-    val hasBreakpoint = afterBoth.breakType != BreakType.NONE
-    val nextDebuggerState = if (hasBreakpoint) {
-        DebuggerState.Paused
-    } else {
-        debuggerStateFromSpeed(afterBoth.speed, isResumed)
-    }
-
-    return BreakpointProgression(
-        nextAutomaton = BreakpointAutomaton(afterBoth.steps),
-        nextDebuggerState = nextDebuggerState,
-        breakType = afterBoth.breakType,
-        newSpeed = if (afterBoth.speedChanged) afterBoth.speed else null
+    return AutomatonResult(
+        nextAutomaton = BreakpointAutomaton(afterResult.remainingSteps),
+        shouldPauseBefore = beforeResult.matched,
+        shouldPauseAfter = afterResult.matched,
+        newSpeed = if (afterResult.newSpeed != currentSpeed) afterResult.newSpeed else null
     )
 }
 
 fun createAutomaton(program: BreakpointProgram): Pair<BreakpointAutomaton, Int?> {
-    val advanced = advanceOverSpeedChanges(program.steps, null)
-    return BreakpointAutomaton(advanced.steps) to advanced.speed
+    val (steps, speed) = consumeSpeedChanges(program.steps, null)
+    return BreakpointAutomaton(steps) to speed
 }

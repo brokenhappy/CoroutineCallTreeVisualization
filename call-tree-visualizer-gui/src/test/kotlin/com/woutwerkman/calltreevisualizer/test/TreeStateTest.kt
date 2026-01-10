@@ -61,11 +61,11 @@ class TreeStateTest {
 
                     // Wait for the interaction to be processed and for the state to settle
                     if (interaction == Interaction.Step) {
-                        viewModel.debuggerState.first { it is DebuggerState.WaitingForSingleStep }
+                        viewModel.executionControl.first { it is ExecutionControl.WaitingForSingleStep }
                     } else {
-                        viewModel.debuggerState.first { it !is DebuggerState.Paused }
+                        viewModel.executionControl.first { it !is ExecutionControl.Paused }
                     }
-                    viewModel.debuggerState.first { it is DebuggerState.Paused }
+                    viewModel.executionControl.first { it is ExecutionControl.Paused }
                 }
 
                 viewModel.tree.value
@@ -216,9 +216,9 @@ class TreeStateTest {
             stepSignals.emit(StepSignal.Resume)
 
             // Wait until it resumes
-            viewModel.debuggerState.first { it !is DebuggerState.Paused }
+            viewModel.executionControl.first { it !is ExecutionControl.Paused }
             // Wait until it hits the breakpoint after 'foo'
-            viewModel.debuggerState.first { it is DebuggerState.Paused }
+            viewModel.executionControl.first { it is ExecutionControl.Paused }
 
             assertEquals(1, configChangeCount, "onConfigChange should be called exactly once for changeSpeed(10), but was called $configChangeCount times")
 

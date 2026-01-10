@@ -44,12 +44,12 @@ import kotlin.time.ExperimentalTime
 
 @Composable
 fun DebuggerControls(
-    debuggerState: DebuggerState,
+    executionControl: ExecutionControl,
     onStep: () -> Unit,
     onResume: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isPaused = debuggerState is DebuggerState.Paused
+    val isPaused = executionControl is ExecutionControl.Paused
     val canStep = isPaused
     val canResume = isPaused
 
@@ -200,7 +200,7 @@ fun CallTreeUI(
     }
 
     val tree by viewModel.tree.collectAsState()
-    val debuggerState by viewModel.debuggerState.collectAsState()
+    val executionControl by viewModel.executionControl.collectAsState()
 
     LaunchedEffect(viewModel) {
         viewModel.run()
@@ -209,7 +209,7 @@ fun CallTreeUI(
     Box(modifier = Modifier.fillMaxSize()) {
         CallTreeUI(tree)
         DebuggerControls(
-            debuggerState = debuggerState,
+            executionControl = executionControl,
             onStep = { stepSignals.tryEmit(StepSignal.Step) },
             onResume = { stepSignals.tryEmit(StepSignal.Resume) },
             modifier = Modifier.align(Alignment.TopEnd)

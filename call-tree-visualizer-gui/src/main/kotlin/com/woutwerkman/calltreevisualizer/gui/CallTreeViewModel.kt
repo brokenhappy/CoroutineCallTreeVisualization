@@ -5,7 +5,10 @@ package com.woutwerkman.calltreevisualizer.gui
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
@@ -13,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
 class CallTreeViewModel(
     private val config: Flow<Config>,
     private val stepSignals: Flow<StepSignal>,
@@ -25,8 +28,8 @@ class CallTreeViewModel(
     private val _tree = MutableStateFlow(CallTree(nodes = persistentMapOf(), roots = persistentListOf()))
     val tree: StateFlow<CallTree> = _tree.asStateFlow()
 
-    private val _debuggerState = MutableStateFlow<DebuggerState>(DebuggerState.Paused)
-    val debuggerState: StateFlow<DebuggerState> = _debuggerState.asStateFlow()
+    private val _executionControl = MutableStateFlow<ExecutionControl>(ExecutionControl.Paused)
+    val executionControl: StateFlow<ExecutionControl> = _executionControl.asStateFlow()
 
     suspend fun run() {
         val (initialAutomaton, initialSpeed) = createAutomaton(breakpointProgram)
@@ -42,73 +45,76 @@ class CallTreeViewModel(
         coroutineScope {
             launch {
                 stepSignals.collect { signal ->
-                    val currentConfig = config.first()
-                    _debuggerState.value = when (signal) {
-                        StepSignal.Step -> DebuggerState.WaitingForSingleStep
-                        StepSignal.Resume -> debuggerStateFromSpeed(currentConfig.speed, isResumed = true)
+                    _executionControl.value = when (signal) {
+                        StepSignal.Step -> ExecutionControl.WaitingForSingleStep
+                        StepSignal.Resume -> ExecutionControl.Running
                     }
                 }
             }
 
             events.collect { event ->
                 val currentConfig = config.first()
-                val currentIsResumed = _debuggerState.value !is DebuggerState.Paused && _debuggerState.value !is DebuggerState.WaitingForSingleStep
-                val progression = progressAutomaton(automaton, event, currentIsResumed, currentConfig.speed)
-                automaton = progression.nextAutomaton
+                val result = progressAutomaton(automaton, event, currentConfig.speed)
+                automaton = result.nextAutomaton
 
-                if (progression.breakType == BreakType.BEFORE || progression.breakType == BreakType.BOTH) {
-                    _debuggerState.value = DebuggerState.Paused
-                    _debuggerState.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(lastEmission, clock)
-                    if (_debuggerState.value == DebuggerState.WaitingForSingleStep) {
-                        _debuggerState.value = DebuggerState.Paused
-                    }
+                // Pause before processing if breakpoint matched
+                if (result.shouldPauseBefore) {
+                    _executionControl.value = ExecutionControl.Paused
+                    _executionControl.waitForResume(lastEmission, config, clock)
                 }
 
                 _tree.value = _tree.value.treeAfter(event)
 
-                progression.newSpeed?.let { newSpeed ->
+                // Update speed if changed
+                result.newSpeed?.let { newSpeed ->
                     val currentConf = config.first()
                     if (currentConf.speed != newSpeed) {
                         onConfigChange(currentConf.copy(speed = newSpeed))
                     }
                 }
 
-                if (progression.breakType == BreakType.AFTER || progression.breakType == BreakType.BOTH) {
-                    _debuggerState.value = DebuggerState.Paused
-                } else {
-                    val latestConfig = config.first()
-                    val isResumedNow = _debuggerState.value !is DebuggerState.Paused && _debuggerState.value !is DebuggerState.WaitingForSingleStep
-                    _debuggerState.value = debuggerStateFromSpeed(latestConfig.speed, isResumedNow)
+                // Pause after processing if breakpoint matched
+                if (result.shouldPauseAfter) {
+                    _executionControl.value = ExecutionControl.Paused
                 }
 
-                _debuggerState.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(lastEmission, clock)
-                if (_debuggerState.value == DebuggerState.WaitingForSingleStep) {
-                    _debuggerState.value = DebuggerState.Paused
+                // Convert WaitingForSingleStep to Paused after processing one event
+                if (_executionControl.value == ExecutionControl.WaitingForSingleStep) {
+                    _executionControl.value = ExecutionControl.Paused
                 }
+
+                // Wait for rate limiting or resume signal
+                _executionControl.waitForResume(lastEmission, config, clock)
                 lastEmission = clock.now()
             }
         }
     }
 }
 
-private suspend fun Flow<DebuggerState>.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(
-    moment: Instant,
+@OptIn(ExperimentalCoroutinesApi::class)
+private suspend fun Flow<ExecutionControl>.waitForResume(
+    lastProcessedAt: Instant,
+    configFlow: Flow<Config>,
     clock: Clock
 ) {
-    mapLatest { currentState ->
-        when (currentState) {
-            is DebuggerState.WaitingForSingleStep,
-            is DebuggerState.Unrestrained -> { /* Do nothing */ }
-            is DebuggerState.RunningAtLimitedSpeed -> {
-                val speed = currentState.eventsPerSecond
-                if (speed <= 0) kotlinx.coroutines.awaitCancellation()
-
-                val timeSinceLastElement = clock.now() - moment
-                val delayTime = 1.seconds / speed - timeSinceLastElement
-
-                if (delayTime.isPositive()) kotlinx.coroutines.delay(delayTime)
+    combine(configFlow) { control, config -> control to config.speed }
+        .distinctUntilChanged()
+        .mapLatest { (control, speed) ->
+            when (control) {
+                ExecutionControl.WaitingForSingleStep,
+                ExecutionControl.Running -> {
+                    // Apply rate limiting if speed is set
+                    speed?.let { eventsPerSecond ->
+                        if (eventsPerSecond > 0) {
+                            val timeSinceLastElement = clock.now() - lastProcessedAt
+                            val delayTime = 1.seconds / eventsPerSecond - timeSinceLastElement
+                            if (delayTime.isPositive()) delay(delayTime)
+                        } else {
+                            awaitCancellation()
+                        }
+                    }
+                }
+                ExecutionControl.Paused -> awaitCancellation()
             }
-            is DebuggerState.Paused -> kotlinx.coroutines.awaitCancellation()
-        }
-    }.first()
+        }.first()
 }
