@@ -29,7 +29,7 @@ class CallTreeViewModel(
     val debuggerState: StateFlow<DebuggerState> = _debuggerState.asStateFlow()
 
     suspend fun run() {
-        val (initialAutomaton, initialSpeed) = BreakpointAutomaton.create(breakpointProgram)
+        val (initialAutomaton, initialSpeed) = createAutomaton(breakpointProgram)
         var automaton = initialAutomaton
         initialSpeed?.let { speed ->
             val currentConf = config.first()
@@ -38,14 +38,14 @@ class CallTreeViewModel(
             }
         }
         var lastEmission = clock.now()
-        
+
         coroutineScope {
             launch {
                 stepSignals.collect { signal ->
                     val currentConfig = config.first()
                     _debuggerState.value = when (signal) {
                         StepSignal.Step -> DebuggerState.WaitingForSingleStep
-                        StepSignal.Resume -> DebuggerState.fromSpeed(currentConfig.speed, isResumed = true)
+                        StepSignal.Resume -> debuggerStateFromSpeed(currentConfig.speed, isResumed = true)
                     }
                 }
             }
@@ -53,7 +53,7 @@ class CallTreeViewModel(
             events.collect { event ->
                 val currentConfig = config.first()
                 val currentIsResumed = _debuggerState.value !is DebuggerState.Paused && _debuggerState.value !is DebuggerState.WaitingForSingleStep
-                val progression = automaton.progress(event, currentIsResumed, currentConfig.speed)
+                val progression = progressAutomaton(automaton, event, currentIsResumed, currentConfig.speed)
                 automaton = progression.nextAutomaton
 
                 if (progression.breakType == BreakType.BEFORE || progression.breakType == BreakType.BOTH) {
@@ -65,7 +65,7 @@ class CallTreeViewModel(
                 }
 
                 _tree.value = _tree.value.treeAfter(event)
-                
+
                 progression.newSpeed?.let { newSpeed ->
                     val currentConf = config.first()
                     if (currentConf.speed != newSpeed) {
@@ -78,7 +78,7 @@ class CallTreeViewModel(
                 } else {
                     val latestConfig = config.first()
                     val isResumedNow = _debuggerState.value !is DebuggerState.Paused && _debuggerState.value !is DebuggerState.WaitingForSingleStep
-                    _debuggerState.value = DebuggerState.fromSpeed(latestConfig.speed, isResumedNow)
+                    _debuggerState.value = debuggerStateFromSpeed(latestConfig.speed, isResumedNow)
                 }
 
                 _debuggerState.waitUntilItsTimeForNextElementGivenThatLastElementWasProcessedAt(lastEmission, clock)

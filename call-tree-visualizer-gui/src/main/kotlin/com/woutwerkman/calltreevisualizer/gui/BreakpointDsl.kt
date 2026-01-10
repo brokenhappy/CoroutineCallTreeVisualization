@@ -5,33 +5,28 @@ import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEve
 import kotlin.reflect.*
 import kotlin.reflect.jvm.javaMethod
 
-sealed interface BreakpointEventMatcher {
-    fun matches(event: CallStackTrackEvent): Boolean
-}
+// Event Matchers - Pure data + functions
+sealed interface BreakpointEventMatcher
 
-data class FunctionCallMatcher(val fqn: String) : BreakpointEventMatcher {
-    override fun matches(event: CallStackTrackEvent): Boolean {
+data class FunctionCallMatcher(val fqn: String) : BreakpointEventMatcher
+data class FunctionThrowsMatcher(val fqn: String) : BreakpointEventMatcher
+data class FunctionCancelsMatcher(val fqn: String) : BreakpointEventMatcher
+data object NextStepMatcher : BreakpointEventMatcher
+
+fun BreakpointEventMatcher.matches(event: CallStackTrackEvent): Boolean = when (this) {
+    is FunctionCallMatcher -> {
         val type = event.eventType
-        return type is CallStackTrackEventType.CallStackPushType && type.functionFqn == fqn
+        type is CallStackTrackEventType.CallStackPushType && type.functionFqn == fqn
     }
-}
-
-data class FunctionThrowsMatcher(val fqn: String) : BreakpointEventMatcher {
-    override fun matches(event: CallStackTrackEvent): Boolean {
+    is FunctionThrowsMatcher -> {
         val type = event.eventType
-        return type is CallStackTrackEventType.CallStackThrowType && event.node.functionFqn == fqn
+        type is CallStackTrackEventType.CallStackThrowType && event.node.functionFqn == fqn
     }
-}
-
-data class FunctionCancelsMatcher(val fqn: String) : BreakpointEventMatcher {
-    override fun matches(event: CallStackTrackEvent): Boolean {
+    is FunctionCancelsMatcher -> {
         val type = event.eventType
-        return type is CallStackTrackEventType.CallStackCancelled && event.node.functionFqn == fqn
+        type is CallStackTrackEventType.CallStackCancelled && event.node.functionFqn == fqn
     }
-}
-
-object NextStepMatcher : BreakpointEventMatcher {
-    override fun matches(event: CallStackTrackEvent): Boolean = true
+    NextStepMatcher -> true
 }
 
 fun functionCall(fqn: String) = FunctionCallMatcher(fqn)
@@ -41,26 +36,31 @@ fun functionCall(function: KFunction<Unit>) = FunctionCallMatcher(function.javaM
 fun functionThrows(function: KFunction<Unit>) = FunctionThrowsMatcher(function.javaMethod!!.declaringClass.packageName + "." + function.name)
 fun functionCancels(function: KFunction<Unit>) = FunctionCancelsMatcher(function.javaMethod!!.declaringClass.packageName + "." + function.name)
 
-sealed interface BreakpointStep {
-    data class SetSpeed(val eventsPerSecond: Int) : BreakpointStep
-    data class BreakBefore(val matcher: BreakpointEventMatcher) : BreakpointStep
-    data class BreakAfter(val matcher: BreakpointEventMatcher) : BreakpointStep
+sealed class BreakpointSteps {
+    data object Empty : BreakpointSteps()
+    data class SetSpeed(val eventsPerSecond: Int, val next: BreakpointSteps) : BreakpointSteps()
+    data class BreakBefore(val matcher: BreakpointEventMatcher, val next: BreakpointSteps) : BreakpointSteps()
+    data class BreakAfter(val matcher: BreakpointEventMatcher, val next: BreakpointSteps) : BreakpointSteps()
 }
 
-class BreakpointProgram(val steps: List<BreakpointStep>) {
-    fun then(program: BreakpointProgram): BreakpointProgram = BreakpointProgram(steps + program.steps)
+fun BreakpointSteps.append(other: BreakpointSteps): BreakpointSteps = when (this) {
+    BreakpointSteps.Empty -> other
+    is BreakpointSteps.SetSpeed -> copy(next = next.append(other))
+    is BreakpointSteps.BreakBefore -> copy(next = next.append(other))
+    is BreakpointSteps.BreakAfter -> copy(next = next.append(other))
 }
 
-fun changeSpeed(eventsPerSecond: Int) = BreakpointProgram(listOf(BreakpointStep.SetSpeed(eventsPerSecond)))
+data class BreakpointProgram(val steps: BreakpointSteps)
+
+fun BreakpointProgram.then(program: BreakpointProgram): BreakpointProgram =
+    BreakpointProgram(steps.append(program.steps))
+
+fun changeSpeed(eventsPerSecond: Int) = BreakpointProgram(BreakpointSteps.SetSpeed(eventsPerSecond, BreakpointSteps.Empty))
 val Int.eventsPerSecond get() = this
 
-fun breakBefore(matcher: BreakpointEventMatcher) = BreakpointProgram(listOf(BreakpointStep.BreakBefore(matcher)))
-fun breakAfter(matcher: BreakpointEventMatcher) = BreakpointProgram(listOf(BreakpointStep.BreakAfter(matcher)))
-fun breakAtNextStep() = BreakpointProgram(listOf(BreakpointStep.BreakBefore(NextStepMatcher)))
-
-fun BreakpointStep.toProgram() = BreakpointProgram(listOf(this))
-
-fun BreakpointProgram.then(step: BreakpointStep): BreakpointProgram = then(step.toProgram())
+fun breakBefore(matcher: BreakpointEventMatcher) = BreakpointProgram(BreakpointSteps.BreakBefore(matcher, BreakpointSteps.Empty))
+fun breakAfter(matcher: BreakpointEventMatcher) = BreakpointProgram(BreakpointSteps.BreakAfter(matcher, BreakpointSteps.Empty))
+fun breakAtNextStep() = BreakpointProgram(BreakpointSteps.BreakBefore(NextStepMatcher, BreakpointSteps.Empty))
 
 enum class StepSignal {
     Step, Resume
@@ -71,18 +71,24 @@ sealed class DebuggerState {
     data class RunningAtLimitedSpeed(val eventsPerSecond: Int) : DebuggerState()
     data object Paused : DebuggerState()
     data object WaitingForSingleStep : DebuggerState()
+}
 
-    companion object {
-        fun fromSpeed(speed: Int?, isResumed: Boolean): DebuggerState = when {
-            !isResumed -> Paused
-            speed == null -> Unrestrained
-            else -> RunningAtLimitedSpeed(speed)
-        }
-    }
+fun debuggerStateFromSpeed(speed: Int?, isResumed: Boolean): DebuggerState = when {
+    !isResumed -> DebuggerState.Paused
+    speed == null -> DebuggerState.Unrestrained
+    else -> DebuggerState.RunningAtLimitedSpeed(speed)
 }
 
 enum class BreakType {
     NONE, BEFORE, AFTER, BOTH
+}
+
+fun BreakType.combine(other: BreakType): BreakType = when {
+    this == BreakType.NONE -> other
+    other == BreakType.NONE -> this
+    this == BreakType.BEFORE && other == BreakType.AFTER -> BreakType.BOTH
+    this == BreakType.AFTER && other == BreakType.BEFORE -> BreakType.BOTH
+    else -> this
 }
 
 data class BreakpointProgression(
@@ -92,81 +98,75 @@ data class BreakpointProgression(
     val newSpeed: Int? = null
 )
 
-data class BreakpointAutomaton(
-    val steps: List<BreakpointStep>,
-    val currentStepIndex: Int = 0
-) {
-    fun progress(event: CallStackTrackEvent, isResumed: Boolean, currentSpeed: Int?): BreakpointProgression {
-        var automaton = this
-        var breakBefore = false
-        var breakAfter = false
-        var newSpeed: Int? = currentSpeed
-        var speedChanged = false
+data class BreakpointAutomaton(val steps: BreakpointSteps)
 
-        fun advance() {
-            while (automaton.currentStepIndex < automaton.steps.size) {
-                val step = automaton.steps[automaton.currentStepIndex]
-                if (step is BreakpointStep.SetSpeed) {
-                    newSpeed = step.eventsPerSecond
-                    speedChanged = true
-                    automaton = automaton.copy(currentStepIndex = automaton.currentStepIndex + 1)
-                } else {
-                    break
-                }
-            }
-        }
+private data class ProgressState(
+    val steps: BreakpointSteps,
+    val breakType: BreakType,
+    val speed: Int?,
+    val speedChanged: Boolean
+)
 
-        // 1. Check for BreakBefore
-        if (automaton.currentStepIndex < automaton.steps.size) {
-            val step = automaton.steps[automaton.currentStepIndex]
-            if (step is BreakpointStep.BreakBefore && step.matcher.matches(event)) {
-                breakBefore = true
-                automaton = automaton.copy(currentStepIndex = automaton.currentStepIndex + 1)
-                advance()
-            }
-        }
+private tailrec fun advanceOverSpeedChanges(steps: BreakpointSteps, currentSpeed: Int?): ProgressState =
+    when (steps) {
+        is BreakpointSteps.SetSpeed -> advanceOverSpeedChanges(steps.next, steps.eventsPerSecond)
+        else -> ProgressState(steps, BreakType.NONE, currentSpeed, currentSpeed != null)
+    }
 
-        // 2. Check for BreakAfter
-        if (automaton.currentStepIndex < automaton.steps.size) {
-            val step = automaton.steps[automaton.currentStepIndex]
-            if (step is BreakpointStep.BreakAfter && step.matcher.matches(event)) {
-                breakAfter = true
-                automaton = automaton.copy(currentStepIndex = automaton.currentStepIndex + 1)
-                advance()
-            }
-        }
-
-        val breakType = when {
-            breakBefore && breakAfter -> BreakType.BOTH
-            breakBefore -> BreakType.BEFORE
-            breakAfter -> BreakType.AFTER
-            else -> BreakType.NONE
-        }
-
-        val nextDebuggerState = if (breakBefore || breakAfter) {
-            DebuggerState.Paused
+private fun checkBreakpoint(
+    steps: BreakpointSteps,
+    event: CallStackTrackEvent,
+    currentBreakType: BreakType,
+    speed: Int?
+): ProgressState = when (steps) {
+    BreakpointSteps.Empty -> ProgressState(steps, currentBreakType, speed, false)
+    is BreakpointSteps.SetSpeed -> advanceOverSpeedChanges(steps, speed)
+    is BreakpointSteps.BreakBefore -> {
+        if (steps.matcher.matches(event)) {
+            val advanced = advanceOverSpeedChanges(steps.next, speed)
+            advanced.copy(breakType = currentBreakType.combine(BreakType.BEFORE))
         } else {
-            DebuggerState.fromSpeed(newSpeed, isResumed)
-        }
-
-        return BreakpointProgression(automaton, nextDebuggerState, breakType, if (speedChanged) newSpeed else null)
-    }
-
-    companion object {
-        fun create(program: BreakpointProgram): Pair<BreakpointAutomaton, Int?> {
-            var automaton = BreakpointAutomaton(program.steps)
-            var initialSpeed: Int? = null
-            var index = 0
-            while (index < automaton.steps.size) {
-                val step = automaton.steps[index]
-                if (step is BreakpointStep.SetSpeed) {
-                    initialSpeed = step.eventsPerSecond
-                    index++
-                } else {
-                    break
-                }
-            }
-            return automaton.copy(currentStepIndex = index) to initialSpeed
+            ProgressState(steps, currentBreakType, speed, false)
         }
     }
+    is BreakpointSteps.BreakAfter -> {
+        if (steps.matcher.matches(event)) {
+            val advanced = advanceOverSpeedChanges(steps.next, speed)
+            advanced.copy(breakType = currentBreakType.combine(BreakType.AFTER))
+        } else {
+            ProgressState(steps, currentBreakType, speed, false)
+        }
+    }
+}
+
+fun progressAutomaton(
+    automaton: BreakpointAutomaton,
+    event: CallStackTrackEvent,
+    isResumed: Boolean,
+    currentSpeed: Int?,
+): BreakpointProgression {
+    // Check BreakBefore
+    val afterBefore = checkBreakpoint(automaton.steps, event, BreakType.NONE, currentSpeed)
+
+    // Check BreakAfter (only if BreakBefore didn't match or both can match)
+    val afterBoth = checkBreakpoint(afterBefore.steps, event, afterBefore.breakType, afterBefore.speed)
+
+    val hasBreakpoint = afterBoth.breakType != BreakType.NONE
+    val nextDebuggerState = if (hasBreakpoint) {
+        DebuggerState.Paused
+    } else {
+        debuggerStateFromSpeed(afterBoth.speed, isResumed)
+    }
+
+    return BreakpointProgression(
+        nextAutomaton = BreakpointAutomaton(afterBoth.steps),
+        nextDebuggerState = nextDebuggerState,
+        breakType = afterBoth.breakType,
+        newSpeed = if (afterBoth.speedChanged) afterBoth.speed else null
+    )
+}
+
+fun createAutomaton(program: BreakpointProgram): Pair<BreakpointAutomaton, Int?> {
+    val advanced = advanceOverSpeedChanges(program.steps, null)
+    return BreakpointAutomaton(advanced.steps) to advanced.speed
 }

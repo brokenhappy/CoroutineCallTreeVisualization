@@ -15,11 +15,11 @@ class BreakpointAutomatonTest {
     @Test
     fun testBreakBefore() {
         val program = breakBefore(functionCall("foo"))
-        val (automaton, _) = BreakpointAutomaton.create(program)
-        
+        val (automaton, _) = createAutomaton(program)
+
         val event = stubEvent("foo")
-        val progression = automaton.progress(event, isResumed = true, currentSpeed = null)
-        
+        val progression = progressAutomaton(automaton, event, isResumed = true, currentSpeed = null)
+
         assertEquals(BreakType.BEFORE, progression.breakType)
         assertEquals(DebuggerState.Paused, progression.nextDebuggerState)
     }
@@ -27,11 +27,11 @@ class BreakpointAutomatonTest {
     @Test
     fun testBreakAfter() {
         val program = breakAfter(functionCall("foo"))
-        val (automaton, _) = BreakpointAutomaton.create(program)
-        
+        val (automaton, _) = createAutomaton(program)
+
         val event = stubEvent("foo")
-        val progression = automaton.progress(event, isResumed = true, currentSpeed = null)
-        
+        val progression = progressAutomaton(automaton, event, isResumed = true, currentSpeed = null)
+
         assertEquals(BreakType.AFTER, progression.breakType)
         // For AFTER, it returns Paused as the next state
         assertEquals(DebuggerState.Paused, progression.nextDebuggerState)
@@ -40,11 +40,11 @@ class BreakpointAutomatonTest {
     @Test
     fun testBreakBoth() {
         val program = breakBefore(functionCall("foo")).then(breakAfter(functionCall("foo")))
-        val (automaton, _) = BreakpointAutomaton.create(program)
-        
+        val (automaton, _) = createAutomaton(program)
+
         val event = stubEvent("foo")
-        val progression = automaton.progress(event, isResumed = true, currentSpeed = null)
-        
+        val progression = progressAutomaton(automaton, event, isResumed = true, currentSpeed = null)
+
         assertEquals(BreakType.BOTH, progression.breakType)
         assertEquals(DebuggerState.Paused, progression.nextDebuggerState)
     }
@@ -52,17 +52,17 @@ class BreakpointAutomatonTest {
     @Test
     fun testChangeSpeed() {
         val program = changeSpeed(10).then(breakBefore(functionCall("foo")))
-        val (automaton, initialSpeed) = BreakpointAutomaton.create(program)
-        
+        val (automaton, initialSpeed) = createAutomaton(program)
+
         assertEquals(10, initialSpeed)
-        
+
         val event = stubEvent("foo")
-        val progression = automaton.progress(event, isResumed = true, currentSpeed = initialSpeed)
+        val progression = progressAutomaton(automaton, event, isResumed = true, currentSpeed = initialSpeed)
         assertEquals(BreakType.BEFORE, progression.breakType)
         assertEquals(DebuggerState.Paused, progression.nextDebuggerState)
-        
+
         // After resuming
-        val nextState = progression.nextAutomaton.progress(stubEvent("bar"), isResumed = true, currentSpeed = initialSpeed).nextDebuggerState
+        val nextState = progressAutomaton(progression.nextAutomaton, stubEvent("bar"), isResumed = true, currentSpeed = initialSpeed).nextDebuggerState
         assertEquals(DebuggerState.RunningAtLimitedSpeed(10), nextState)
     }
 }
