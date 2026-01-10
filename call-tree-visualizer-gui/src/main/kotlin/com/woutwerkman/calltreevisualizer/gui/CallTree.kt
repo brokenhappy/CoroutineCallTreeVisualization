@@ -203,7 +203,9 @@ fun CallTreeUI(
     val executionControl by viewModel.executionControl.collectAsState()
 
     LaunchedEffect(viewModel) {
-        viewModel.run()
+        withContext(Dispatchers.Default) {
+            viewModel.run()
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
