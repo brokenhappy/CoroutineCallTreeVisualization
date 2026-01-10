@@ -1,0 +1,89 @@
+FILE: simpleIntrinsics.kt
+    public final class TestTracker : R|com/woutwerkman/calltreevisualizer/StackTrackingContext| {
+        public constructor(): R|TestTracker| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final val calls: R|kotlin/collections/MutableList<kotlin/String>| = R|kotlin/collections/mutableListOf|<R|kotlin/String|>()
+            public get(): R|kotlin/collections/MutableList<kotlin/String>|
+
+        @R|com/woutwerkman/calltreevisualizer/NonTracked|() public open override suspend fun <T> track(functionFqn: R|kotlin/String|, child: R|suspend () -> T|): R|T| {
+            this@R|/TestTracker|.R|/TestTracker.calls|.R|SubstitutionOverride<kotlin/collections/MutableList.add: R|kotlin/Boolean|>|(<strcat>(String(enter:), R|<local>/functionFqn|))
+            ^track try {
+                lval result: R|T| = R|<local>/child|.R|SubstitutionOverride<kotlin/coroutines/SuspendFunction0.invoke: R|T|>|()
+                this@R|/TestTracker|.R|/TestTracker.calls|.R|SubstitutionOverride<kotlin/collections/MutableList.add: R|kotlin/Boolean|>|(<strcat>(String(exit:), R|<local>/functionFqn|))
+                R|<local>/result|
+            }
+            catch (e: R|kotlin/Throwable|) {
+                this@R|/TestTracker|.R|/TestTracker.calls|.R|SubstitutionOverride<kotlin/collections/MutableList.add: R|kotlin/Boolean|>|(<strcat>(String(throw:), R|<local>/functionFqn|, String(:), R|<local>/e|.R|kotlin/Throwable.message|))
+                throw R|<local>/e|
+            }
+
+        }
+
+        public open override val key: R|kotlin/coroutines/CoroutineContext.Key<*>|
+            public get(): R|kotlin/coroutines/CoroutineContext.Key<*>| {
+                ^ Q|com/woutwerkman/calltreevisualizer/StackTrackingContext|
+            }
+
+    }
+    public final fun <T> runBlocking(block: R|suspend () -> T|): R|T| {
+        lval tracker: R|TestTracker| = R|/TestTracker.TestTracker|()
+        lvar result: R|kotlin/Result<T>?| = Null(null)
+        R|<local>/block|.R|kotlin/coroutines/startCoroutine|<R|T|>(object : R|kotlin/coroutines/Continuation<T>| {
+            private constructor(): R|<anonymous><T>| {
+                super<R|kotlin/Any|>()
+            }
+
+            public open override val context: R|kotlin/coroutines/CoroutineContext| = R|<local>/tracker|
+                public get(): R|kotlin/coroutines/CoroutineContext|
+
+            public open override fun resumeWith(res: R|kotlin/Result<T>|): R|kotlin/Unit| {
+                R|<local>/result| = R|<local>/res|
+            }
+
+        }
+        )
+        ^runBlocking R|<local>/result|!!.R|kotlin/getOrThrow|<R|T|>()
+    }
+    public final suspend fun testFoo(): R|kotlin/String| {
+        ^testFoo String(foo)
+    }
+    public final suspend fun testBar(): R|kotlin/String| {
+        R|/testFoo|()
+        ^testBar String(bar)
+    }
+    public final fun box(): R|kotlin/String| {
+        lval tracker: R|TestTracker| = R|/TestTracker.TestTracker|()
+        lvar result: R|kotlin/Result<kotlin/String>?| = Null(null)
+        lval continuation: R|<anonymous>| = object : R|kotlin/coroutines/Continuation<kotlin/String>| {
+            private constructor(): R|<anonymous>| {
+                super<R|kotlin/Any|>()
+            }
+
+            public open override val context: R|kotlin/coroutines/CoroutineContext| = R|<local>/tracker|
+                public get(): R|kotlin/coroutines/CoroutineContext|
+
+            public open override fun resumeWith(res: R|kotlin/Result<kotlin/String>|): R|kotlin/Unit| {
+                R|<local>/result| = R|<local>/res|
+            }
+
+        }
+
+        lval coro: R|suspend () -> kotlin/String| = fun <anonymous>(): R|kotlin/String| <inline=Unknown>  {
+            ^ R|/testBar|()
+        }
+
+        R|<local>/coro|.R|kotlin/coroutines/startCoroutine|<R|kotlin/String|>(R|<local>/continuation|)
+        lval value: R|kotlin/String| = R|<local>/result|!!.R|kotlin/getOrThrow|<R|kotlin/String|>()
+        lval expected: R|kotlin/collections/List<kotlin/String>| = R|kotlin/collections/listOf|<R|kotlin/String|>(vararg(String(enter:testBar), String(enter:testFoo), String(exit:testFoo), String(exit:testBar)))
+        ^box when () {
+            ==(R|<local>/tracker|.R|/TestTracker.calls|, R|<local>/expected|) && ==(R|<local>/value|, String(bar)) ->  {
+                String(OK)
+            }
+            else ->  {
+                <strcat>(String(FAIL: calls=), R|<local>/tracker|.R|/TestTracker.calls|, String(, value=), R|<local>/value|)
+            }
+        }
+
+    }

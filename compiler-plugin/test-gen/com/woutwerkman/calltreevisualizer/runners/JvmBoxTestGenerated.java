@@ -22,14 +22,32 @@ public class JvmBoxTestGenerated extends AbstractJvmBoxTest {
   }
 
   @Test
-  @TestMetadata("anotherBoxTest.kt")
-  public void testAnotherBoxTest() {
-    runTest("compiler-plugin/testData/box/anotherBoxTest.kt");
+  @TestMetadata("deepNesting.kt")
+  public void testDeepNesting() {
+    runTest("compiler-plugin/testData/box/deepNesting.kt");
+  }
+
+  @Test
+  @TestMetadata("nonTrackedFunction.kt")
+  public void testNonTrackedFunction() {
+    runTest("compiler-plugin/testData/box/nonTrackedFunction.kt");
   }
 
   @Test
   @TestMetadata("simple.kt")
   public void testSimple() {
     runTest("compiler-plugin/testData/box/simple.kt");
+  }
+
+  @Test
+  @TestMetadata("simpleIntrinsics.kt")
+  public void testSimpleIntrinsics() {
+    runTest("compiler-plugin/testData/box/simpleIntrinsics.kt");
+  }
+
+  @Test
+  @TestMetadata("suspendWithReturn.kt")
+  public void testSuspendWithReturn() {
+    runTest("compiler-plugin/testData/box/suspendWithReturn.kt");
   }
 }

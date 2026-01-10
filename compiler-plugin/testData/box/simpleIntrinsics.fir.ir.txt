@@ -1,0 +1,296 @@
+FILE fqName:<root> fileName:/simpleIntrinsics.kt
+  CLASS CLASS name:TestTracker modality:FINAL visibility:public superTypes:[com.woutwerkman.calltreevisualizer.StackTrackingContext]
+    thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.TestTracker
+    PROPERTY name:calls visibility:public modality:FINAL [val]
+      FIELD PROPERTY_BACKING_FIELD name:calls type:kotlin.collections.MutableList<kotlin.String> visibility:private [final]
+        EXPRESSION_BODY
+          CALL 'public final fun mutableListOf <T> (): kotlin.collections.MutableList<T of kotlin.collections.mutableListOf> declared in kotlin.collections' type=kotlin.collections.MutableList<kotlin.String> origin=null
+            TYPE_ARG T: kotlin.String
+      FUN DEFAULT_PROPERTY_ACCESSOR name:<get-calls> visibility:public modality:FINAL returnType:kotlin.collections.MutableList<kotlin.String>
+        VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.TestTracker
+        correspondingProperty: PROPERTY name:calls visibility:public modality:FINAL [val]
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public final fun <get-calls> (): kotlin.collections.MutableList<kotlin.String> declared in <root>.TestTracker'
+            GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:calls type:kotlin.collections.MutableList<kotlin.String> visibility:private [final]' type=kotlin.collections.MutableList<kotlin.String> origin=null
+              receiver: GET_VAR '<this>: <root>.TestTracker declared in <root>.TestTracker.<get-calls>' type=<root>.TestTracker origin=null
+    CONSTRUCTOR visibility:public returnType:<root>.TestTracker [primary]
+      BLOCK_BODY
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+        INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:TestTracker modality:FINAL visibility:public superTypes:[com.woutwerkman.calltreevisualizer.StackTrackingContext]' type=kotlin.Unit
+    FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+      overridden:
+        public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+    FUN FAKE_OVERRIDE name:fold visibility:public modality:OPEN returnType:R of <root>.TestTracker.fold [fake_override]
+      TYPE_PARAMETER name:R index:0 variance: superTypes:[kotlin.Any?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.coroutines.CoroutineContext.Element
+      VALUE_PARAMETER kind:Regular name:initial index:1 type:R of <root>.TestTracker.fold
+      VALUE_PARAMETER kind:Regular name:operation index:2 type:kotlin.Function2<R of <root>.TestTracker.fold, kotlin.coroutines.CoroutineContext.Element, R of <root>.TestTracker.fold>
+      overridden:
+        public open fun fold <R> (initial: R of com.woutwerkman.calltreevisualizer.StackTrackingContext.fold, operation: kotlin.Function2<R of com.woutwerkman.calltreevisualizer.StackTrackingContext.fold, kotlin.coroutines.CoroutineContext.Element, R of com.woutwerkman.calltreevisualizer.StackTrackingContext.fold>): R of com.woutwerkman.calltreevisualizer.StackTrackingContext.fold declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+    FUN FAKE_OVERRIDE name:get visibility:public modality:OPEN returnType:E of <root>.TestTracker.get? [fake_override,operator]
+      TYPE_PARAMETER name:E index:0 variance: superTypes:[kotlin.coroutines.CoroutineContext.Element] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.coroutines.CoroutineContext.Element
+      VALUE_PARAMETER kind:Regular name:key index:1 type:kotlin.coroutines.CoroutineContext.Key<E of <root>.TestTracker.get>
+      overridden:
+        public open fun get <E> (key: kotlin.coroutines.CoroutineContext.Key<E of com.woutwerkman.calltreevisualizer.StackTrackingContext.get>): E of com.woutwerkman.calltreevisualizer.StackTrackingContext.get? declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+    FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun hashCode (): kotlin.Int declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+    FUN FAKE_OVERRIDE name:minusKey visibility:public modality:OPEN returnType:kotlin.coroutines.CoroutineContext [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.coroutines.CoroutineContext.Element
+      VALUE_PARAMETER kind:Regular name:key index:1 type:kotlin.coroutines.CoroutineContext.Key<*>
+      overridden:
+        public open fun minusKey (key: kotlin.coroutines.CoroutineContext.Key<*>): kotlin.coroutines.CoroutineContext declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+    FUN FAKE_OVERRIDE name:plus visibility:public modality:OPEN returnType:kotlin.coroutines.CoroutineContext [fake_override,operator]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.coroutines.CoroutineContext
+      VALUE_PARAMETER kind:Regular name:context index:1 type:kotlin.coroutines.CoroutineContext
+      overridden:
+        public open fun plus (context: kotlin.coroutines.CoroutineContext): kotlin.coroutines.CoroutineContext declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+    FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+      overridden:
+        public open fun toString (): kotlin.String declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+    FUN name:track visibility:public modality:OPEN returnType:T of <root>.TestTracker.track [suspend]
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?] reified:false
+      VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.TestTracker
+      VALUE_PARAMETER kind:Regular name:functionFqn index:1 type:kotlin.String
+      VALUE_PARAMETER kind:Regular name:child index:2 type:kotlin.coroutines.SuspendFunction0<T of <root>.TestTracker.track>
+      annotations:
+        NonTracked
+      overridden:
+        public abstract fun track <T> (functionFqn: kotlin.String, child: kotlin.coroutines.SuspendFunction0<T of com.woutwerkman.calltreevisualizer.StackTrackingContext.track>): T of com.woutwerkman.calltreevisualizer.StackTrackingContext.track declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+      BLOCK_BODY
+        TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+          CALL 'public abstract fun add (element: E of kotlin.collections.MutableList): kotlin.Boolean declared in kotlin.collections.MutableList' type=kotlin.Boolean origin=null
+            ARG <this>: CALL 'public final fun <get-calls> (): kotlin.collections.MutableList<kotlin.String> declared in <root>.TestTracker' type=kotlin.collections.MutableList<kotlin.String> origin=GET_PROPERTY
+              ARG <this>: GET_VAR '<this>: <root>.TestTracker declared in <root>.TestTracker.track' type=<root>.TestTracker origin=IMPLICIT_ARGUMENT
+            ARG element: STRING_CONCATENATION type=kotlin.String
+              CONST String type=kotlin.String value="enter:"
+              GET_VAR 'functionFqn: kotlin.String declared in <root>.TestTracker.track' type=kotlin.String origin=null
+        RETURN type=kotlin.Nothing from='public open fun track <T> (functionFqn: kotlin.String, child: kotlin.coroutines.SuspendFunction0<T of <root>.TestTracker.track>): T of <root>.TestTracker.track declared in <root>.TestTracker'
+          TRY type=T of <root>.TestTracker.track
+            try: BLOCK type=T of <root>.TestTracker.track origin=null
+              VAR name:result type:T of <root>.TestTracker.track [val]
+                CALL 'public abstract fun invoke (): R of kotlin.coroutines.SuspendFunction0 declared in kotlin.coroutines.SuspendFunction0' type=T of <root>.TestTracker.track origin=null
+                  ARG <this>: GET_VAR 'child: kotlin.coroutines.SuspendFunction0<T of <root>.TestTracker.track> declared in <root>.TestTracker.track' type=kotlin.coroutines.SuspendFunction0<T of <root>.TestTracker.track> origin=VARIABLE_AS_FUNCTION
+              TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+                CALL 'public abstract fun add (element: E of kotlin.collections.MutableList): kotlin.Boolean declared in kotlin.collections.MutableList' type=kotlin.Boolean origin=null
+                  ARG <this>: CALL 'public final fun <get-calls> (): kotlin.collections.MutableList<kotlin.String> declared in <root>.TestTracker' type=kotlin.collections.MutableList<kotlin.String> origin=GET_PROPERTY
+                    ARG <this>: GET_VAR '<this>: <root>.TestTracker declared in <root>.TestTracker.track' type=<root>.TestTracker origin=IMPLICIT_ARGUMENT
+                  ARG element: STRING_CONCATENATION type=kotlin.String
+                    CONST String type=kotlin.String value="exit:"
+                    GET_VAR 'functionFqn: kotlin.String declared in <root>.TestTracker.track' type=kotlin.String origin=null
+              GET_VAR 'val result: T of <root>.TestTracker.track declared in <root>.TestTracker.track' type=T of <root>.TestTracker.track origin=null
+            CATCH parameter=val e: kotlin.Throwable declared in <root>.TestTracker.track
+              VAR CATCH_PARAMETER name:e type:kotlin.Throwable [val]
+              BLOCK type=kotlin.Nothing origin=null
+                TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+                  CALL 'public abstract fun add (element: E of kotlin.collections.MutableList): kotlin.Boolean declared in kotlin.collections.MutableList' type=kotlin.Boolean origin=null
+                    ARG <this>: CALL 'public final fun <get-calls> (): kotlin.collections.MutableList<kotlin.String> declared in <root>.TestTracker' type=kotlin.collections.MutableList<kotlin.String> origin=GET_PROPERTY
+                      ARG <this>: GET_VAR '<this>: <root>.TestTracker declared in <root>.TestTracker.track' type=<root>.TestTracker origin=IMPLICIT_ARGUMENT
+                    ARG element: STRING_CONCATENATION type=kotlin.String
+                      CONST String type=kotlin.String value="throw:"
+                      GET_VAR 'functionFqn: kotlin.String declared in <root>.TestTracker.track' type=kotlin.String origin=null
+                      CONST String type=kotlin.String value=":"
+                      CALL 'public open fun <get-message> (): kotlin.String? declared in kotlin.Throwable' type=kotlin.String? origin=GET_PROPERTY
+                        ARG <this>: GET_VAR 'val e: kotlin.Throwable declared in <root>.TestTracker.track' type=kotlin.Throwable origin=null
+                THROW type=kotlin.Nothing
+                  GET_VAR 'val e: kotlin.Throwable declared in <root>.TestTracker.track' type=kotlin.Throwable origin=null
+    PROPERTY name:key visibility:public modality:OPEN [val]
+      overridden:
+        public open key: kotlin.coroutines.CoroutineContext.Key<*> declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+      FUN name:<get-key> visibility:public modality:OPEN returnType:kotlin.coroutines.CoroutineContext.Key<*>
+        VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.TestTracker
+        correspondingProperty: PROPERTY name:key visibility:public modality:OPEN [val]
+        overridden:
+          public open fun <get-key> (): kotlin.coroutines.CoroutineContext.Key<*> declared in com.woutwerkman.calltreevisualizer.StackTrackingContext
+        BLOCK_BODY
+          RETURN type=kotlin.Nothing from='public open fun <get-key> (): kotlin.coroutines.CoroutineContext.Key<*> declared in <root>.TestTracker'
+            GET_OBJECT 'CLASS IR_EXTERNAL_DECLARATION_STUB OBJECT name:Companion modality:FINAL visibility:public [companion] superTypes:[kotlin.coroutines.CoroutineContext.Key<com.woutwerkman.calltreevisualizer.StackTrackingContext>]' type=com.woutwerkman.calltreevisualizer.StackTrackingContext.Companion
+  FUN name:box visibility:public modality:FINAL returnType:kotlin.String
+    BLOCK_BODY
+      VAR name:tracker type:<root>.TestTracker [val]
+        CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.TestTracker' type=<root>.TestTracker origin=null
+      VAR name:result type:kotlin.Result<kotlin.String>? [var]
+        CONST Null type=kotlin.Nothing? value=null
+      VAR name:continuation type:<root>.box.<no name provided> [val]
+        BLOCK type=<root>.box.<no name provided> origin=OBJECT_LITERAL
+          CLASS CLASS name:<no name provided> modality:FINAL visibility:local superTypes:[kotlin.coroutines.Continuation<kotlin.String>]
+            thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.box.<no name provided>
+            PROPERTY name:context visibility:public modality:OPEN [val]
+              overridden:
+                public abstract context: kotlin.coroutines.CoroutineContext declared in kotlin.coroutines.Continuation
+              FIELD PROPERTY_BACKING_FIELD name:context type:kotlin.coroutines.CoroutineContext visibility:private [final]
+                EXPRESSION_BODY
+                  GET_VAR 'val tracker: <root>.TestTracker declared in <root>.box' type=<root>.TestTracker origin=null
+              FUN DEFAULT_PROPERTY_ACCESSOR name:<get-context> visibility:public modality:OPEN returnType:kotlin.coroutines.CoroutineContext
+                VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.box.<no name provided>
+                correspondingProperty: PROPERTY name:context visibility:public modality:OPEN [val]
+                overridden:
+                  public abstract fun <get-context> (): kotlin.coroutines.CoroutineContext declared in kotlin.coroutines.Continuation
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='public open fun <get-context> (): kotlin.coroutines.CoroutineContext declared in <root>.box.<no name provided>'
+                    GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:context type:kotlin.coroutines.CoroutineContext visibility:private [final]' type=kotlin.coroutines.CoroutineContext origin=null
+                      receiver: GET_VAR '<this>: <root>.box.<no name provided> declared in <root>.box.<no name provided>.<get-context>' type=<root>.box.<no name provided> origin=null
+            CONSTRUCTOR visibility:public returnType:<root>.box.<no name provided> [primary]
+              BLOCK_BODY
+                DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+                INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:<no name provided> modality:FINAL visibility:local superTypes:[kotlin.coroutines.Continuation<kotlin.String>]' type=kotlin.Unit
+            FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+              VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+              VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+              overridden:
+                public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.coroutines.Continuation
+            FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+              VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+              overridden:
+                public open fun hashCode (): kotlin.Int declared in kotlin.coroutines.Continuation
+            FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+              VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+              overridden:
+                public open fun toString (): kotlin.String declared in kotlin.coroutines.Continuation
+            FUN name:resumeWith visibility:public modality:OPEN returnType:kotlin.Unit
+              VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.box.<no name provided>
+              VALUE_PARAMETER kind:Regular name:res index:1 type:kotlin.Result<kotlin.String>
+              overridden:
+                public abstract fun resumeWith (result: kotlin.Result<T of kotlin.coroutines.Continuation>): kotlin.Unit declared in kotlin.coroutines.Continuation
+              BLOCK_BODY
+                SET_VAR 'var result: kotlin.Result<kotlin.String>? declared in <root>.box' type=kotlin.Unit origin=EQ
+                  GET_VAR 'res: kotlin.Result<kotlin.String> declared in <root>.box.<no name provided>.resumeWith' type=kotlin.Result<kotlin.String> origin=null
+          CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.box.<no name provided>' type=<root>.box.<no name provided> origin=OBJECT_LITERAL
+      VAR name:coro type:kotlin.coroutines.SuspendFunction0<kotlin.String> [val]
+        FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String> origin=LAMBDA
+          FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String [suspend]
+            BLOCK_BODY
+              RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String declared in <root>.box'
+                CALL 'public final fun testBar (): kotlin.String declared in <root>' type=kotlin.String origin=null
+      CALL 'public final fun startCoroutine <T> (<this>: kotlin.coroutines.SuspendFunction0<T of kotlin.coroutines.startCoroutine>, completion: kotlin.coroutines.Continuation<T of kotlin.coroutines.startCoroutine>): kotlin.Unit declared in kotlin.coroutines' type=kotlin.Unit origin=null
+        TYPE_ARG T: kotlin.String
+        ARG <this>: GET_VAR 'val coro: kotlin.coroutines.SuspendFunction0<kotlin.String> declared in <root>.box' type=kotlin.coroutines.SuspendFunction0<kotlin.String> origin=null
+        ARG completion: GET_VAR 'val continuation: <root>.box.<no name provided> declared in <root>.box' type=<root>.box.<no name provided> origin=null
+      VAR name:value type:kotlin.String [val]
+        CALL 'public final fun getOrThrow <T> (<this>: kotlin.Result<T of kotlin.getOrThrow>): T of kotlin.getOrThrow declared in kotlin' type=kotlin.String origin=null
+          TYPE_ARG T: kotlin.String
+          ARG <this>: CALL 'public final fun CHECK_NOT_NULL <T0> (arg0: T0 of kotlin.internal.ir.CHECK_NOT_NULL?): {T0 of kotlin.internal.ir.CHECK_NOT_NULL & Any} declared in kotlin.internal.ir' type=kotlin.Result<kotlin.String> origin=EXCLEXCL
+            TYPE_ARG T0: kotlin.Result<kotlin.String>
+            ARG arg0: GET_VAR 'var result: kotlin.Result<kotlin.String>? declared in <root>.box' type=kotlin.Result<kotlin.String>? origin=null
+      VAR name:expected type:kotlin.collections.List<kotlin.String> [val]
+        CALL 'public final fun listOf <T> (vararg elements: T of kotlin.collections.listOf): kotlin.collections.List<T of kotlin.collections.listOf> declared in kotlin.collections' type=kotlin.collections.List<kotlin.String> origin=null
+          TYPE_ARG T: kotlin.String
+          ARG elements: VARARG type=kotlin.Array<out kotlin.String> varargElementType=kotlin.String
+            CONST String type=kotlin.String value="enter:testBar"
+            CONST String type=kotlin.String value="enter:testFoo"
+            CONST String type=kotlin.String value="exit:testFoo"
+            CONST String type=kotlin.String value="exit:testBar"
+      RETURN type=kotlin.Nothing from='public final fun box (): kotlin.String declared in <root>'
+        WHEN type=kotlin.String origin=IF
+          BRANCH
+            if: WHEN type=kotlin.Boolean origin=ANDAND
+              BRANCH
+                if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                  ARG arg0: CALL 'public final fun <get-calls> (): kotlin.collections.MutableList<kotlin.String> declared in <root>.TestTracker' type=kotlin.collections.MutableList<kotlin.String> origin=GET_PROPERTY
+                    ARG <this>: GET_VAR 'val tracker: <root>.TestTracker declared in <root>.box' type=<root>.TestTracker origin=null
+                  ARG arg1: GET_VAR 'val expected: kotlin.collections.List<kotlin.String> declared in <root>.box' type=kotlin.collections.List<kotlin.String> origin=null
+                then: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                  ARG arg0: GET_VAR 'val value: kotlin.String declared in <root>.box' type=kotlin.String origin=null
+                  ARG arg1: CONST String type=kotlin.String value="bar"
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Boolean type=kotlin.Boolean value=false
+            then: BLOCK type=kotlin.String origin=null
+              CONST String type=kotlin.String value="OK"
+          BRANCH
+            if: CONST Boolean type=kotlin.Boolean value=true
+            then: BLOCK type=kotlin.String origin=null
+              STRING_CONCATENATION type=kotlin.String
+                CONST String type=kotlin.String value="FAIL: calls="
+                CALL 'public final fun <get-calls> (): kotlin.collections.MutableList<kotlin.String> declared in <root>.TestTracker' type=kotlin.collections.MutableList<kotlin.String> origin=GET_PROPERTY
+                  ARG <this>: GET_VAR 'val tracker: <root>.TestTracker declared in <root>.box' type=<root>.TestTracker origin=null
+                CONST String type=kotlin.String value=", value="
+                GET_VAR 'val value: kotlin.String declared in <root>.box' type=kotlin.String origin=null
+  FUN name:runBlocking visibility:public modality:FINAL returnType:T of <root>.runBlocking
+    TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?] reified:false
+    VALUE_PARAMETER kind:Regular name:block index:0 type:kotlin.coroutines.SuspendFunction0<T of <root>.runBlocking>
+    BLOCK_BODY
+      VAR name:tracker type:<root>.TestTracker [val]
+        CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.TestTracker' type=<root>.TestTracker origin=null
+      VAR name:result type:kotlin.Result<T of <root>.runBlocking>? [var]
+        CONST Null type=kotlin.Nothing? value=null
+      CALL 'public final fun startCoroutine <T> (<this>: kotlin.coroutines.SuspendFunction0<T of kotlin.coroutines.startCoroutine>, completion: kotlin.coroutines.Continuation<T of kotlin.coroutines.startCoroutine>): kotlin.Unit declared in kotlin.coroutines' type=kotlin.Unit origin=null
+        TYPE_ARG T: T of <root>.runBlocking
+        ARG <this>: GET_VAR 'block: kotlin.coroutines.SuspendFunction0<T of <root>.runBlocking> declared in <root>.runBlocking' type=kotlin.coroutines.SuspendFunction0<T of <root>.runBlocking> origin=null
+        ARG completion: BLOCK type=<root>.runBlocking.<no name provided><T of <root>.runBlocking> origin=OBJECT_LITERAL
+          CLASS CLASS name:<no name provided> modality:FINAL visibility:local superTypes:[kotlin.coroutines.Continuation<T of <root>.runBlocking>]
+            thisReceiver: VALUE_PARAMETER INSTANCE_RECEIVER kind:DispatchReceiver name:<this> type:<root>.runBlocking.<no name provided><T of <root>.runBlocking>
+            PROPERTY name:context visibility:public modality:OPEN [val]
+              overridden:
+                public abstract context: kotlin.coroutines.CoroutineContext declared in kotlin.coroutines.Continuation
+              FIELD PROPERTY_BACKING_FIELD name:context type:kotlin.coroutines.CoroutineContext visibility:private [final]
+                EXPRESSION_BODY
+                  GET_VAR 'val tracker: <root>.TestTracker declared in <root>.runBlocking' type=<root>.TestTracker origin=null
+              FUN DEFAULT_PROPERTY_ACCESSOR name:<get-context> visibility:public modality:OPEN returnType:kotlin.coroutines.CoroutineContext
+                VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.runBlocking.<no name provided><T of <root>.runBlocking>
+                correspondingProperty: PROPERTY name:context visibility:public modality:OPEN [val]
+                overridden:
+                  public abstract fun <get-context> (): kotlin.coroutines.CoroutineContext declared in kotlin.coroutines.Continuation
+                BLOCK_BODY
+                  RETURN type=kotlin.Nothing from='public open fun <get-context> (): kotlin.coroutines.CoroutineContext declared in <root>.runBlocking.<no name provided>'
+                    GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:context type:kotlin.coroutines.CoroutineContext visibility:private [final]' type=kotlin.coroutines.CoroutineContext origin=null
+                      receiver: GET_VAR '<this>: <root>.runBlocking.<no name provided><T of <root>.runBlocking> declared in <root>.runBlocking.<no name provided>.<get-context>' type=<root>.runBlocking.<no name provided><T of <root>.runBlocking> origin=null
+            CONSTRUCTOR visibility:public returnType:<root>.runBlocking.<no name provided><T of <root>.runBlocking> [primary]
+              BLOCK_BODY
+                DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () declared in kotlin.Any'
+                INSTANCE_INITIALIZER_CALL classDescriptor='CLASS CLASS name:<no name provided> modality:FINAL visibility:local superTypes:[kotlin.coroutines.Continuation<T of <root>.runBlocking>]' type=kotlin.Unit
+            FUN FAKE_OVERRIDE name:equals visibility:public modality:OPEN returnType:kotlin.Boolean [fake_override,operator]
+              VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+              VALUE_PARAMETER kind:Regular name:other index:1 type:kotlin.Any?
+              overridden:
+                public open fun equals (other: kotlin.Any?): kotlin.Boolean declared in kotlin.coroutines.Continuation
+            FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN returnType:kotlin.Int [fake_override]
+              VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+              overridden:
+                public open fun hashCode (): kotlin.Int declared in kotlin.coroutines.Continuation
+            FUN FAKE_OVERRIDE name:toString visibility:public modality:OPEN returnType:kotlin.String [fake_override]
+              VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:kotlin.Any
+              overridden:
+                public open fun toString (): kotlin.String declared in kotlin.coroutines.Continuation
+            FUN name:resumeWith visibility:public modality:OPEN returnType:kotlin.Unit
+              VALUE_PARAMETER kind:DispatchReceiver name:<this> index:0 type:<root>.runBlocking.<no name provided><T of <root>.runBlocking>
+              VALUE_PARAMETER kind:Regular name:res index:1 type:kotlin.Result<T of <root>.runBlocking>
+              overridden:
+                public abstract fun resumeWith (result: kotlin.Result<T of kotlin.coroutines.Continuation>): kotlin.Unit declared in kotlin.coroutines.Continuation
+              BLOCK_BODY
+                SET_VAR 'var result: kotlin.Result<T of <root>.runBlocking>? declared in <root>.runBlocking' type=kotlin.Unit origin=EQ
+                  GET_VAR 'res: kotlin.Result<T of <root>.runBlocking> declared in <root>.runBlocking.<no name provided>.resumeWith' type=kotlin.Result<T of <root>.runBlocking> origin=null
+          CONSTRUCTOR_CALL 'public constructor <init> () declared in <root>.runBlocking.<no name provided>' type=<root>.runBlocking.<no name provided><T of <root>.runBlocking> origin=OBJECT_LITERAL
+      RETURN type=kotlin.Nothing from='public final fun runBlocking <T> (block: kotlin.coroutines.SuspendFunction0<T of <root>.runBlocking>): T of <root>.runBlocking declared in <root>'
+        CALL 'public final fun getOrThrow <T> (<this>: kotlin.Result<T of kotlin.getOrThrow>): T of kotlin.getOrThrow declared in kotlin' type=T of <root>.runBlocking origin=null
+          TYPE_ARG T: T of <root>.runBlocking
+          ARG <this>: CALL 'public final fun CHECK_NOT_NULL <T0> (arg0: T0 of kotlin.internal.ir.CHECK_NOT_NULL?): {T0 of kotlin.internal.ir.CHECK_NOT_NULL & Any} declared in kotlin.internal.ir' type=kotlin.Result<T of <root>.runBlocking> origin=EXCLEXCL
+            TYPE_ARG T0: kotlin.Result<T of <root>.runBlocking>
+            ARG arg0: GET_VAR 'var result: kotlin.Result<T of <root>.runBlocking>? declared in <root>.runBlocking' type=kotlin.Result<T of <root>.runBlocking>? origin=null
+  FUN name:testBar visibility:public modality:FINAL returnType:kotlin.String [suspend]
+    EXPRESSION_BODY
+      CALL 'public final fun stackTracked <T> (functionFqn: kotlin.String, child: kotlin.coroutines.SuspendFunction0<T of com.woutwerkman.calltreevisualizer.stackTracked>): T of com.woutwerkman.calltreevisualizer.stackTracked declared in com.woutwerkman.calltreevisualizer' type=kotlin.String origin=GeneratedByCallTreeVisualizer
+        TYPE_ARG T: kotlin.String
+        ARG functionFqn: CONST String type=kotlin.String value="testBar"
+        ARG child: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String> origin=LAMBDA
+          FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String [suspend]
+            BLOCK_BODY
+              TYPE_OP type=kotlin.Unit origin=IMPLICIT_COERCION_TO_UNIT typeOperand=kotlin.Unit
+                CALL 'public final fun testFoo (): kotlin.String declared in <root>' type=kotlin.String origin=null
+              RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String declared in <root>.testBar'
+                CONST String type=kotlin.String value="bar"
+  FUN name:testFoo visibility:public modality:FINAL returnType:kotlin.String [suspend]
+    EXPRESSION_BODY
+      CALL 'public final fun stackTracked <T> (functionFqn: kotlin.String, child: kotlin.coroutines.SuspendFunction0<T of com.woutwerkman.calltreevisualizer.stackTracked>): T of com.woutwerkman.calltreevisualizer.stackTracked declared in com.woutwerkman.calltreevisualizer' type=kotlin.String origin=GeneratedByCallTreeVisualizer
+        TYPE_ARG T: kotlin.String
+        ARG functionFqn: CONST String type=kotlin.String value="testFoo"
+        ARG child: FUN_EXPR type=kotlin.coroutines.SuspendFunction0<kotlin.String> origin=LAMBDA
+          FUN LOCAL_FUNCTION_FOR_LAMBDA name:<anonymous> visibility:local modality:FINAL returnType:kotlin.String [suspend]
+            BLOCK_BODY
+              RETURN type=kotlin.Nothing from='local final fun <anonymous> (): kotlin.String declared in <root>.testFoo'
+                CONST String type=kotlin.String value="foo"

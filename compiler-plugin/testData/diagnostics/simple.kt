@@ -2,9 +2,10 @@
 
 package foo.bar
 
-import com.woutwerkman.calltreevisualizer.SomeAnnotation
+class MyClass {
+    fun foo(): String = "test"
+}
 
-@SomeAnnotation
 fun test() {
     val s = MyClass().foo()
     s.<!UNRESOLVED_REFERENCE!>inc<!>() // should be an error

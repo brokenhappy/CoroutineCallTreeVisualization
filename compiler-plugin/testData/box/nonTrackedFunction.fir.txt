@@ -1,0 +1,65 @@
+FILE: nonTrackedFunction.kt
+    public final class TestTracker : R|com/woutwerkman/calltreevisualizer/StackTrackingContext| {
+        public constructor(): R|TestTracker| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final val calls: R|kotlin/collections/MutableList<kotlin/String>| = R|kotlin/collections/mutableListOf|<R|kotlin/String|>()
+            public get(): R|kotlin/collections/MutableList<kotlin/String>|
+
+        @R|com/woutwerkman/calltreevisualizer/NonTracked|() public open override suspend fun <T> track(functionFqn: R|kotlin/String|, child: R|suspend () -> T|): R|T| {
+            this@R|/TestTracker|.R|/TestTracker.calls|.R|SubstitutionOverride<kotlin/collections/MutableList.add: R|kotlin/Boolean|>|(<strcat>(String(enter:), R|<local>/functionFqn|))
+            ^track try {
+                R|<local>/child|.R|SubstitutionOverride<kotlin/coroutines/SuspendFunction0.invoke: R|T|>|()
+            }
+            finally {
+                this@R|/TestTracker|.R|/TestTracker.calls|.R|SubstitutionOverride<kotlin/collections/MutableList.add: R|kotlin/Boolean|>|(<strcat>(String(exit:), R|<local>/functionFqn|))
+            }
+
+        }
+
+        public open override val key: R|kotlin/coroutines/CoroutineContext.Key<*>|
+            public get(): R|kotlin/coroutines/CoroutineContext.Key<*>| {
+                ^ Q|com/woutwerkman/calltreevisualizer/StackTrackingContext|
+            }
+
+    }
+    @R|com/woutwerkman/calltreevisualizer/NonTracked|() public final suspend fun notTracked(): R|kotlin/String| {
+        ^notTracked String(hidden)
+    }
+    public final suspend fun tracked(): R|kotlin/String| {
+        ^tracked R|/notTracked|()
+    }
+    public final fun box(): R|kotlin/String| {
+        lval tracker: R|TestTracker| = R|/TestTracker.TestTracker|()
+        lvar result: R|kotlin/Result<kotlin/String>?| = Null(null)
+        lval coro: R|suspend () -> kotlin/String| = fun <anonymous>(): R|kotlin/String| <inline=Unknown>  {
+            ^ R|/tracked|()
+        }
+
+        R|<local>/coro|.R|kotlin/coroutines/startCoroutine|<R|kotlin/String|>(object : R|kotlin/coroutines/Continuation<kotlin/String>| {
+            private constructor(): R|<anonymous>| {
+                super<R|kotlin/Any|>()
+            }
+
+            public open override val context: R|kotlin/coroutines/CoroutineContext| = R|<local>/tracker|
+                public get(): R|kotlin/coroutines/CoroutineContext|
+
+            public open override fun resumeWith(res: R|kotlin/Result<kotlin/String>|): R|kotlin/Unit| {
+                R|<local>/result| = R|<local>/res|
+            }
+
+        }
+        )
+        lval value: R|kotlin/String| = R|<local>/result|!!.R|kotlin/getOrThrow|<R|kotlin/String|>()
+        lval expected: R|kotlin/collections/List<kotlin/String>| = R|kotlin/collections/listOf|<R|kotlin/String|>(vararg(String(enter:tracked), String(exit:tracked)))
+        ^box when () {
+            ==(R|<local>/tracker|.R|/TestTracker.calls|, R|<local>/expected|) && ==(R|<local>/value|, String(hidden)) ->  {
+                String(OK)
+            }
+            else ->  {
+                <strcat>(String(FAIL: calls=), R|<local>/tracker|.R|/TestTracker.calls|, String(, value=), R|<local>/value|, String(, expected=), R|<local>/expected|)
+            }
+        }
+
+    }

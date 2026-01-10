@@ -1,0 +1,88 @@
+FILE: suspendWithReturn.kt
+    public final class TestTracker : R|com/woutwerkman/calltreevisualizer/StackTrackingContext| {
+        public constructor(): R|TestTracker| {
+            super<R|kotlin/Any|>()
+        }
+
+        public final val calls: R|kotlin/collections/MutableList<kotlin/String>| = R|kotlin/collections/mutableListOf|<R|kotlin/String|>()
+            public get(): R|kotlin/collections/MutableList<kotlin/String>|
+
+        @R|com/woutwerkman/calltreevisualizer/NonTracked|() public open override suspend fun <T> track(functionFqn: R|kotlin/String|, child: R|suspend () -> T|): R|T| {
+            this@R|/TestTracker|.R|/TestTracker.calls|.R|SubstitutionOverride<kotlin/collections/MutableList.add: R|kotlin/Boolean|>|(<strcat>(String(enter:), R|<local>/functionFqn|))
+            ^track try {
+                R|<local>/child|.R|SubstitutionOverride<kotlin/coroutines/SuspendFunction0.invoke: R|T|>|()
+            }
+            finally {
+                this@R|/TestTracker|.R|/TestTracker.calls|.R|SubstitutionOverride<kotlin/collections/MutableList.add: R|kotlin/Boolean|>|(<strcat>(String(exit:), R|<local>/functionFqn|))
+            }
+
+        }
+
+        public open override val key: R|kotlin/coroutines/CoroutineContext.Key<*>|
+            public get(): R|kotlin/coroutines/CoroutineContext.Key<*>| {
+                ^ Q|com/woutwerkman/calltreevisualizer/StackTrackingContext|
+            }
+
+    }
+    public final suspend fun earlyReturn(condition: R|kotlin/Boolean|): R|kotlin/String| {
+        when () {
+            R|<local>/condition| ->  {
+                ^earlyReturn String(early)
+            }
+        }
+
+        ^earlyReturn String(late)
+    }
+    public final fun box(): R|kotlin/String| {
+        lval tracker: R|TestTracker| = R|/TestTracker.TestTracker|()
+        lvar result1: R|kotlin/Result<kotlin/String>?| = Null(null)
+        lvar result2: R|kotlin/Result<kotlin/String>?| = Null(null)
+        lval coro1: R|suspend () -> kotlin/String| = fun <anonymous>(): R|kotlin/String| <inline=Unknown>  {
+            ^ R|/earlyReturn|(Boolean(true))
+        }
+
+        R|<local>/coro1|.R|kotlin/coroutines/startCoroutine|<R|kotlin/String|>(object : R|kotlin/coroutines/Continuation<kotlin/String>| {
+            private constructor(): R|<anonymous>| {
+                super<R|kotlin/Any|>()
+            }
+
+            public open override val context: R|kotlin/coroutines/CoroutineContext| = R|<local>/tracker|
+                public get(): R|kotlin/coroutines/CoroutineContext|
+
+            public open override fun resumeWith(res: R|kotlin/Result<kotlin/String>|): R|kotlin/Unit| {
+                R|<local>/result1| = R|<local>/res|
+            }
+
+        }
+        )
+        lval value1: R|kotlin/String| = R|<local>/result1|!!.R|kotlin/getOrThrow|<R|kotlin/String|>()
+        lval coro2: R|suspend () -> kotlin/String| = fun <anonymous>(): R|kotlin/String| <inline=Unknown>  {
+            ^ R|/earlyReturn|(Boolean(false))
+        }
+
+        R|<local>/coro2|.R|kotlin/coroutines/startCoroutine|<R|kotlin/String|>(object : R|kotlin/coroutines/Continuation<kotlin/String>| {
+            private constructor(): R|<anonymous>| {
+                super<R|kotlin/Any|>()
+            }
+
+            public open override val context: R|kotlin/coroutines/CoroutineContext| = R|<local>/tracker|
+                public get(): R|kotlin/coroutines/CoroutineContext|
+
+            public open override fun resumeWith(res: R|kotlin/Result<kotlin/String>|): R|kotlin/Unit| {
+                R|<local>/result2| = R|<local>/res|
+            }
+
+        }
+        )
+        lval value2: R|kotlin/String| = R|<local>/result2|!!.R|kotlin/getOrThrow|<R|kotlin/String|>()
+        lval expected: R|kotlin/collections/List<kotlin/String>| = R|kotlin/collections/listOf|<R|kotlin/String|>(vararg(String(enter:earlyReturn), String(exit:earlyReturn), String(enter:earlyReturn), String(exit:earlyReturn)))
+        ^box when () {
+            ==(R|<local>/tracker|.R|/TestTracker.calls|, R|<local>/expected|) && ==(R|<local>/value1|, String(early)) && ==(R|<local>/value2|, String(late)) ->  {
+                String(OK)
+            }
+            else ->  {
+                <strcat>(String(FAIL: calls=), R|<local>/tracker|.R|/TestTracker.calls|, String(, value1=), R|<local>/value1|, String(, value2=), R|<local>/value2|)
+            }
+        }
+
+    }
