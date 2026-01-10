@@ -5,7 +5,6 @@ import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEve
 import kotlin.reflect.*
 import kotlin.reflect.jvm.javaMethod
 
-// Event Matchers - Pure data + functions
 sealed interface BreakpointEventMatcher
 
 data class FunctionCallMatcher(val fqn: String) : BreakpointEventMatcher
@@ -29,7 +28,6 @@ fun BreakpointEventMatcher.matches(event: CallStackTrackEvent): Boolean = when (
     NextStepMatcher -> true
 }
 
-// DSL Constructors
 fun functionCall(fqn: String) = FunctionCallMatcher(fqn)
 fun functionThrows(fqn: String) = FunctionThrowsMatcher(fqn)
 fun functionCancels(fqn: String) = FunctionCancelsMatcher(fqn)
@@ -37,7 +35,6 @@ fun functionCall(function: KFunction<Unit>) = FunctionCallMatcher(function.javaM
 fun functionThrows(function: KFunction<Unit>) = FunctionThrowsMatcher(function.javaMethod!!.declaringClass.packageName + "." + function.name)
 fun functionCancels(function: KFunction<Unit>) = FunctionCancelsMatcher(function.javaMethod!!.declaringClass.packageName + "." + function.name)
 
-// Breakpoint Steps - Using sealed class for natural linked list structure
 sealed class BreakpointSteps {
     data object Empty : BreakpointSteps()
     data class SetSpeed(val eventsPerSecond: Int, val next: BreakpointSteps) : BreakpointSteps()
@@ -52,13 +49,11 @@ fun BreakpointSteps.append(other: BreakpointSteps): BreakpointSteps = when (this
     is BreakpointSteps.BreakAfter -> copy(next = next.append(other))
 }
 
-// Program - Immutable wrapper
 data class BreakpointProgram(val steps: BreakpointSteps)
 
 fun BreakpointProgram.then(program: BreakpointProgram): BreakpointProgram =
     BreakpointProgram(steps.append(program.steps))
 
-// DSL builders
 fun changeSpeed(eventsPerSecond: Int) = BreakpointProgram(BreakpointSteps.SetSpeed(eventsPerSecond, BreakpointSteps.Empty))
 val Int.eventsPerSecond get() = this
 
@@ -66,12 +61,10 @@ fun breakBefore(matcher: BreakpointEventMatcher) = BreakpointProgram(BreakpointS
 fun breakAfter(matcher: BreakpointEventMatcher) = BreakpointProgram(BreakpointSteps.BreakAfter(matcher, BreakpointSteps.Empty))
 fun breakAtNextStep() = BreakpointProgram(BreakpointSteps.BreakBefore(NextStepMatcher, BreakpointSteps.Empty))
 
-// Step Signal
 enum class StepSignal {
     Step, Resume
 }
 
-// Execution control - simpler than DebuggerState
 sealed class ExecutionControl {
     data object Running : ExecutionControl()
     data object Paused : ExecutionControl()
@@ -80,7 +73,6 @@ sealed class ExecutionControl {
 
 fun ExecutionControl.isRunning(): Boolean = this is ExecutionControl.Running
 
-// Result of processing an event through the automaton
 data class AutomatonResult(
     val nextAutomaton: BreakpointAutomaton,
     val shouldPauseBefore: Boolean,
@@ -96,14 +88,12 @@ private data class MatchResult(
     val matched: Boolean
 )
 
-// Advance through consecutive SetSpeed steps
 private tailrec fun consumeSpeedChanges(steps: BreakpointSteps, currentSpeed: Int?): Pair<BreakpointSteps, Int?> =
     when (steps) {
         is BreakpointSteps.SetSpeed -> consumeSpeedChanges(steps.next, steps.eventsPerSecond)
         else -> steps to currentSpeed
     }
 
-// Try to match a specific breakpoint type at the current step
 private fun tryMatchBreakpointBefore(
     steps: BreakpointSteps,
     event: CallStackTrackEvent,
@@ -151,10 +141,8 @@ fun progressAutomaton(
     event: CallStackTrackEvent,
     currentSpeed: Int?
 ): AutomatonResult {
-    // Try to match BreakBefore
     val beforeResult = tryMatchBreakpointBefore(automaton.steps, event, currentSpeed)
 
-    // Try to match BreakAfter on remaining steps
     val afterResult = tryMatchBreakpointAfter(beforeResult.remainingSteps, event, beforeResult.newSpeed)
 
     return AutomatonResult(
