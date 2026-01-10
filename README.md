@@ -2,20 +2,22 @@
 
 **Educational tool for visualizing Kotlin Coroutine execution.**
 
+![Demo](demo_video.gif)
+
 This project is designed as an educational resource, specifically targeted at coroutine-related talks, workshops, and for anyone wanting to build a deeper mental model of how coroutines behave. It provides a real-time GUI that visualizes coroutine call trees, tracking function calls, exceptions, and cancellations across coroutines.
 
 ## Features
 
 - **Real-time Visualization**: Watch the call tree grow and shrink as your coroutines execute.
 - **Coroutine-aware Tracking**: Correctly handles suspension points and unstructured concurrency.
-- **Exception & Cancellation Tracking**: Visualizes where exceptions are thrown and where coroutines are cancelled (represented by "explosion" icons).
+- **Exception & Cancellation Tracking**: Visualizes where exceptions are thrown and where coroutines are cancelled.
 - **Customizable UI**: Support for Dark and Light themes.
 
 ## Usage in Talks & Education
 
 This tool is especially useful for live demonstrations during talks or workshops. By visualizing the call tree, you can:
 - **Demystify Structured Concurrency**: Show how child coroutines are tied to their parents.
-- **Visualize Cancellation**: Demonstrate how cancellation propagates through the tree (look for the "explosion" icons).
+- **Visualize Cancellation**: Demonstrate how cancellation propagates through the tree.
 - **Explain Suspension**: See exactly when a coroutine suspends and resumes.
 - **Debug Complex Flows**: Use it to explain complex asynchronous logic that is hard to follow in code alone.
 
