@@ -5,6 +5,7 @@ import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStack
 import com.woutwerkman.calltreevisualizer.owningGlobalScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -14,12 +15,17 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import kotlin.time.TimeSource
 
 @OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
 class TreeStateTest {
 
-    class FakeClock(var current: Instant = Instant.fromEpochSeconds(0)) : Clock {
-        override fun now(): Instant = current
+    private class TestClock(private val timeSource: TimeSource.WithComparableMarks) : Clock {
+        private val startMark = timeSource.markNow()
+        private val startEpochMillis = 0L
+        override fun now() = Instant.fromEpochMilliseconds(
+            startEpochMillis + (timeSource.markNow() - startMark).inWholeMilliseconds
+        )
     }
 
     private sealed interface Interaction {
@@ -27,7 +33,7 @@ class TreeStateTest {
         data object Resume : Interaction
     }
 
-    private suspend fun treeAfterDebuggerProgramOrNullIfProgramFinished(
+    private suspend fun TestScope.treeAfterDebuggerProgramOrNullIfProgramFinished(
         program: suspend () -> Unit,
         debuggerProgram: BreakpointProgram,
         interactions: List<Interaction>
@@ -44,7 +50,7 @@ class TreeStateTest {
                     program()
                 }
             },
-            clock = FakeClock()
+            clock = TestClock(testScheduler.timeSource)
         )
 
         race(
@@ -208,7 +214,7 @@ class TreeStateTest {
                 config.value = it
             },
             events = events,
-            clock = FakeClock()
+            clock = TestClock(testScheduler.timeSource)
         )
 
         coroutineScope {
