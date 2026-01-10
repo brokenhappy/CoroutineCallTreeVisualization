@@ -53,8 +53,8 @@ suspend fun baz(shouldThrow: Boolean) {
 }
 
 @NonTracked
-public suspend fun runGlobalScopeTracker(tracker: StackTrackingContext): Nothing =
-    kotlinhax.shadowroutines.runGlobalScopeTracker(tracker)
+public suspend fun <T> owningGlobalScope(block: suspend () -> T): T =
+    kotlinhax.shadowroutines.owningGlobalScope { block() }
 
 suspend fun recurse(a: Int) {
     if (a <= 0) error("AAAH")

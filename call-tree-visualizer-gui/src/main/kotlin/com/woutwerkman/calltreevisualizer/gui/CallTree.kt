@@ -21,7 +21,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -34,7 +33,7 @@ import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEve
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
-import com.woutwerkman.calltreevisualizer.runGlobalScopeTracker
+import com.woutwerkman.calltreevisualizer.owningGlobalScope
 import kotlinx.collections.immutable.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
@@ -193,9 +192,9 @@ fun CallTreeUI(
             breakpointProgram = breakpointProgram,
             onConfigChange = onConfigChange,
             events = trackingCallStacks {
-                val job = launch { runGlobalScopeTracker(it) }
-                program()
-                job.cancelAndJoin()
+                owningGlobalScope {
+                    program()
+                }
             }
         )
     }

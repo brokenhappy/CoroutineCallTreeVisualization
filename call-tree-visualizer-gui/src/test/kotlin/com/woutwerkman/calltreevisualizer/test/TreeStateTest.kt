@@ -2,7 +2,7 @@ package com.woutwerkman.calltreevisualizer.test
 
 import com.woutwerkman.calltreevisualizer.gui.*
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
-import com.woutwerkman.calltreevisualizer.runGlobalScopeTracker
+import com.woutwerkman.calltreevisualizer.owningGlobalScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.runTest
@@ -39,10 +39,10 @@ class TreeStateTest {
             stepSignals = stepSignals,
             breakpointProgram = debuggerProgram,
             onConfigChange = { config.value = it },
-            events = trackingCallStacks { rootTracker ->
-                val job = launch { runGlobalScopeTracker(rootTracker) }
-                program()
-                job.cancelAndJoin()
+            events = trackingCallStacks {
+                owningGlobalScope {
+                    program()
+                }
             },
             clock = FakeClock()
         )
