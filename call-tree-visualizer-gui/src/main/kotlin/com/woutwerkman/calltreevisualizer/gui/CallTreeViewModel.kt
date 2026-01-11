@@ -63,7 +63,7 @@ class CallTreeViewModel(
                     _executionControl.waitForResume(lastEmission, config, clock)
                 }
 
-                _tree.value = _tree.value.treeAfter(event)
+                _tree.value = _tree.value.after(event)
 
                 // Update speed if changed
                 result.newSpeed?.let { newSpeed ->

@@ -132,7 +132,7 @@ data class CallTree(val nodes: PersistentMap<Int, Node>, val roots: PersistentLi
     }
 }
 
-fun CallTree.treeAfter(event: CallStackTrackEvent): CallTree {
+fun CallTree.after(event: CallStackTrackEvent): CallTree {
     val (node, eventType) = event
     return when (eventType) {
         is CallStackTrackEventType.CallStackThrowType -> addThrownException(node, wasCancellation = false)
