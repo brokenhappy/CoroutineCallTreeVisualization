@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.binary.compatibility.validator)
     `maven-publish`
+    signing
 }
 
 dependencies {
@@ -23,7 +24,9 @@ kotlin {
 
     js().nodejs()
 
-    jvm()
+    jvm {
+        withJava()
+    }
 
     linuxArm64()
     linuxX64()
@@ -47,4 +50,13 @@ kotlin {
     watchosX64()
 
     applyDefaultHierarchyTemplate()
+}
+
+publishing {
+    publications.withType<MavenPublication> {
+        pom {
+            name.set("Coroutine Call Tree Visualization - Tracked Call Tree as Flow")
+            description.set("Flow-based integration for capturing and tracking coroutine call trees")
+        }
+    }
 }

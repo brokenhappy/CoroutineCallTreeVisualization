@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.gradle.java.test.fixtures)
     alias(libs.plugins.gradle.idea)
     `maven-publish`
+    signing
 }
 
 sourceSets {
@@ -106,10 +107,22 @@ fun Test.setLibraryProperty(propName: String, jarName: String) {
     systemProperty(propName, path)
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
+
+            artifactId = "compiler-plugin"
+
+            pom {
+                name.set("Coroutine Call Tree Visualization - Compiler Plugin")
+                description.set("Kotlin compiler plugin for instrumenting suspend functions to enable call tree visualization")
+            }
         }
     }
 }

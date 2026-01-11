@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.buildconfig)
     alias(libs.plugins.gradle.plugin)
     `maven-publish`
+    signing
 }
 
 sourceSets {
@@ -39,13 +40,22 @@ buildConfig {
     )
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 gradlePlugin {
+    website.set("https://github.com/Woutwo/CoroutineCallTreeVisualization")
+    vcsUrl.set("https://github.com/Woutwo/CoroutineCallTreeVisualization.git")
+
     plugins {
-        create("SimplePlugin") {
+        create("callTreeVisualizerPlugin") {
             id = rootProject.group.toString()
-            displayName = "SimplePlugin"
-            description = "SimplePlugin"
+            displayName = "Coroutine Call Tree Visualizer"
+            description = "Gradle plugin for enabling coroutine call tree visualization in Kotlin projects"
             implementationClass = "com.woutwerkman.calltreevisualizer.SimpleGradlePlugin"
+            tags.set(listOf("kotlin", "coroutines", "visualization", "debugging"))
         }
     }
 }

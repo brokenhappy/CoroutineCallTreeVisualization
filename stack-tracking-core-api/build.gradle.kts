@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.binary.compatibility.validator)
     `maven-publish`
+    signing
 }
 
 kotlin {
@@ -22,7 +23,9 @@ kotlin {
 
     js().nodejs()
 
-    jvm()
+    jvm {
+        withJava()
+    }
 
     linuxArm64()
     linuxX64()
@@ -46,4 +49,13 @@ kotlin {
     watchosX64()
 
     applyDefaultHierarchyTemplate()
+}
+
+publishing {
+    publications.withType<MavenPublication> {
+        pom {
+            name.set("Coroutine Call Tree Visualization - Core API")
+            description.set("Core API and annotations for coroutine call tree tracking")
+        }
+    }
 }
