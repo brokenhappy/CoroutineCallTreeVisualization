@@ -24,7 +24,7 @@ public class CallStackTrackEvent(public val node: CallTreeNode, public val event
 }
 
 public sealed class CallStackTrackEventType {
-    public data class CallStackPushType(val functionFqn: String) : CallStackTrackEventType()
+    public data object CallStackPushType : CallStackTrackEventType()
     public data object CallStackPopType : CallStackTrackEventType()
     public class CallStackThrowType(public val throwable: Throwable) : CallStackTrackEventType()
     public object CallStackCancelled : CallStackTrackEventType()
@@ -48,7 +48,7 @@ public fun trackingCallStacks(
     fun CallTreeNode?.toStackTrackedCoroutineContext(): StackTrackingContext = object : StackTrackingContext {
         override suspend fun <T> track(functionFqn: String, child: suspend () -> T): T {
             val childNode = CallTreeNode(nodeCounter.incrementAndFetch(), functionFqn, this@toStackTrackedCoroutineContext)
-            sendOnFlowScope(CallStackTrackEvent(childNode, CallStackTrackEventType.CallStackPushType(functionFqn)))
+            sendOnFlowScope(CallStackTrackEvent(childNode, CallStackTrackEventType.CallStackPushType))
             var iHaveNoClueAtAllWhyThisHelps: Job? = null
             return try {
                 withContext(childNode.toStackTrackedCoroutineContext()) {

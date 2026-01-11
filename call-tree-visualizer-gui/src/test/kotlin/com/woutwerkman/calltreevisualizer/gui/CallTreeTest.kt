@@ -12,7 +12,7 @@ class CallTreeTest {
 
     private fun CallStackTrackEventType.on(node: CallTreeNode) = CallStackTrackEvent(node, this)
 
-    private fun pushing(fqn: String) = CallStackTrackEventType.CallStackPushType(fqn)
+    private fun pushing() = CallStackTrackEventType.CallStackPushType
     private fun popping() = CallStackTrackEventType.CallStackPopType
     private fun throwing(throwable: Throwable = RuntimeException("test")) = CallStackTrackEventType.CallStackThrowType(throwable)
 
@@ -21,7 +21,7 @@ class CallTreeTest {
         val rootNode = CallTreeNode(1, "root")
 
         val treeWithRoot = CallTree(persistentMapOf(), persistentListOf())
-            .treeAfter(pushing("root").on(rootNode))
+            .treeAfter(pushing().on(rootNode))
 
         assertEquals(1, treeWithRoot.roots.size)
         assertEquals(1, treeWithRoot.roots[0])
@@ -34,8 +34,8 @@ class CallTreeTest {
         val childNode = CallTreeNode(2, "child", rootNode)
 
         val treeWithChild = CallTree(persistentMapOf(), persistentListOf())
-            .treeAfter(pushing("root").on(rootNode))
-            .treeAfter(pushing("child").on(childNode))
+            .treeAfter(pushing().on(rootNode))
+            .treeAfter(pushing().on(childNode))
 
         assertEquals(1, treeWithChild.nodes[1]?.childIds?.size)
         assertEquals(2, treeWithChild.nodes[1]?.childIds?.get(0))
@@ -49,9 +49,9 @@ class CallTreeTest {
         val throwingNode = CallTreeNode(3, "throwing", catchingNode)
 
         val treeWithException = CallTree(persistentMapOf(), persistentListOf())
-            .treeAfter(pushing("root").on(rootNode))
-            .treeAfter(pushing("catching").on(catchingNode))
-            .treeAfter(pushing("throwing").on(throwingNode))
+            .treeAfter(pushing().on(rootNode))
+            .treeAfter(pushing().on(catchingNode))
+            .treeAfter(pushing().on(throwingNode))
             .treeAfter(throwing().on(throwingNode))
 
         assertEquals(3, treeWithException.nodes.size)

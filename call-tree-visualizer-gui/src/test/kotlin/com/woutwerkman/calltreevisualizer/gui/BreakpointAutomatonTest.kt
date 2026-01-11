@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 
 class BreakpointAutomatonTest {
 
-    private fun stubEvent(fqn: String, type: CallStackTrackEventType = CallStackTrackEventType.CallStackPushType(fqn)): CallStackTrackEvent {
+    private fun stubEvent(fqn: String, type: CallStackTrackEventType = CallStackTrackEventType.CallStackPushType): CallStackTrackEvent {
         return CallStackTrackEvent(CallTreeNode(1, fqn), type)
     }
 

@@ -15,7 +15,7 @@ data object NextStepMatcher : BreakpointEventMatcher
 fun BreakpointEventMatcher.matches(event: CallStackTrackEvent): Boolean = when (this) {
     is FunctionCallMatcher -> {
         val type = event.eventType
-        type is CallStackTrackEventType.CallStackPushType && type.functionFqn == fqn
+        type is CallStackTrackEventType.CallStackPushType && event.node.functionFqn == fqn
     }
     is FunctionThrowsMatcher -> {
         val type = event.eventType
