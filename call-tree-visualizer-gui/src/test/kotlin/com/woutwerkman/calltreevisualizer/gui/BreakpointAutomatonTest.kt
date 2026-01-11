@@ -15,7 +15,7 @@ class BreakpointAutomatonTest {
     }
 
     @Test
-    fun testBreakBefore() {
+    fun `breakBefore pauses before function execution`() {
         val program = breakBefore(functionCall("foo"))
         val (automaton, _) = createAutomaton(program)
 
@@ -27,7 +27,7 @@ class BreakpointAutomatonTest {
     }
 
     @Test
-    fun testBreakAfter() {
+    fun `breakAfter pauses after function execution`() {
         val program = breakAfter(functionCall("foo"))
         val (automaton, _) = createAutomaton(program)
 
@@ -39,7 +39,7 @@ class BreakpointAutomatonTest {
     }
 
     @Test
-    fun testBreakBoth() {
+    fun `combining breakBefore and breakAfter pauses both before and after`() {
         val program = breakBefore(functionCall("foo")).then(breakAfter(functionCall("foo")))
         val (automaton, _) = createAutomaton(program)
 
@@ -51,7 +51,7 @@ class BreakpointAutomatonTest {
     }
 
     @Test
-    fun testChangeSpeed() {
+    fun `changeSpeed sets initial speed and only pauses at specified breakpoint`() {
         val program = changeSpeed(10).then(breakBefore(functionCall("foo")))
         val (automaton, initialSpeed) = createAutomaton(program)
 
@@ -61,7 +61,6 @@ class BreakpointAutomatonTest {
         val result = progressAutomaton(automaton, event, currentSpeed = initialSpeed)
         assertTrue(result.shouldPauseBefore)
 
-        // After resuming - the next event should not cause a pause
         val nextResult = progressAutomaton(result.nextAutomaton, stubEvent("bar"), currentSpeed = initialSpeed)
         assertFalse(nextResult.shouldPauseBefore)
         assertFalse(nextResult.shouldPauseAfter)

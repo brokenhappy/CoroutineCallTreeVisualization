@@ -17,7 +17,7 @@ class CallTreeTest {
     private fun throwing(throwable: Throwable = RuntimeException("test")) = CallStackTrackEventType.CallStackThrowType(throwable)
 
     @Test
-    fun testInitialRoot() {
+    fun `pushing a root node adds it to the tree`() {
         val rootNode = CallTreeNode(1, "root")
 
         val treeWithRoot = CallTree(persistentMapOf(), persistentListOf())
@@ -29,7 +29,7 @@ class CallTreeTest {
     }
 
     @Test
-    fun testAddChild() {
+    fun `pushing a child node adds it to its parent`() {
         val rootNode = CallTreeNode(1, "root")
         val childNode = CallTreeNode(2, "child", rootNode)
 
@@ -43,7 +43,7 @@ class CallTreeTest {
     }
 
     @Test
-    fun testExceptionFramesRemovedWhenCatchingFrameCompletes() {
+    fun `popping a catching frame removes it and all exception child nodes`() {
         val rootNode = CallTreeNode(1, "root")
         val catchingNode = CallTreeNode(2, "catching", rootNode)
         val throwingNode = CallTreeNode(3, "throwing", catchingNode)

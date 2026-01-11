@@ -78,7 +78,7 @@ class TreeStateTest {
     }
 
     @Test
-    fun testBreakBeforeVsAfter() = runTest(timeout = 2.seconds) {
+    fun `breakBefore plus step equals breakAfter`() = runTest(timeout = 2.seconds) {
         val fqn = "com.woutwerkman.calltreevisualizer.test.foo"
 
         // Break Before
@@ -107,7 +107,7 @@ class TreeStateTest {
     }
 
     @Test
-    fun testBreakBoth() = runTest(timeout = 2.seconds) {
+    fun `breakBefore and breakAfter combined pauses before adding node`() = runTest(timeout = 2.seconds) {
         val fqn = "com.woutwerkman.calltreevisualizer.test.foo"
 
         val tree = treeAfterDebuggerProgramOrNullIfProgramFinished(
@@ -121,7 +121,7 @@ class TreeStateTest {
     }
 
     @Test
-    fun testBreakAtNextStep() = runTest(timeout = 2.seconds) {
+    fun `breakAtNextStep pauses before first step with empty tree`() = runTest(timeout = 2.seconds) {
         val tree = treeAfterDebuggerProgramOrNullIfProgramFinished(
             program = { simpleCall() },
             debuggerProgram = breakAtNextStep(),
@@ -132,7 +132,7 @@ class TreeStateTest {
     }
 
     @Test
-    fun testBranchingCallStructure() = runTest(timeout = 2.seconds) {
+    fun `branching call creates multiple child nodes`() = runTest(timeout = 2.seconds) {
         val rootFqn = "com.woutwerkman.calltreevisualizer.test.persistentBranchingCall"
         val foobsFqn = "com.woutwerkman.calltreevisualizer.test.foobsForever"
 
@@ -153,7 +153,7 @@ class TreeStateTest {
     }
 
     @Test
-    fun testThrowingCall() = runTest(timeout = 2.seconds) {
+    fun `function node changes type to ThrewException after throwing`() = runTest(timeout = 2.seconds) {
         val fqn = "com.woutwerkman.calltreevisualizer.test.throwingCall"
 
         // Pause when it's about to throw
@@ -180,7 +180,7 @@ class TreeStateTest {
 
     @Test
     @Ignore
-    fun testCancellingCall() = runTest(timeout = 2.seconds) {
+    fun `cancelled function is marked with wasCancellation flag`() = runTest(timeout = 2.seconds) {
         val fqn = "com.woutwerkman.calltreevisualizer.test.foobsForever"
 
         val treeAfter = treeAfterDebuggerProgramOrNullIfProgramFinished(
@@ -194,7 +194,7 @@ class TreeStateTest {
     }
 
     @Test
-    fun testChangeSpeedOnlyCalledOnce() = runTest(timeout = 2.seconds) {
+    fun `changeSpeed triggers config change exactly once`() = runTest(timeout = 2.seconds) {
         var configChangeCount = 0
         val breakpointProgram = changeSpeed(10).then(breakAfter(functionCall("com.woutwerkman.calltreevisualizer.test.foo")))
 
