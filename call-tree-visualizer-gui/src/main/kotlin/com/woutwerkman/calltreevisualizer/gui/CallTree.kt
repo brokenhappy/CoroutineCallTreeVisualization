@@ -423,7 +423,6 @@ private fun CallTree.addThrownException(node: CallTreeNode, wasCancellation: Boo
 )
 
 private fun CallTree.removeNode(childNodeId: Int, parentNodeId: Int?): CallTree {
-    // First, collect all child IDs to remove (including exception frames)
     val childNode = nodes[childNodeId]
     val allChildIdsToRemove = if (childNode != null) {
         allChildIdsRecursivelyStartingFrom(rootIds = listOf(childNodeId))

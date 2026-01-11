@@ -10,68 +10,58 @@ import kotlin.test.assertEquals
 
 class CallTreeTest {
 
-    private fun stubPushEvent(id: Int, fqn: String, parent: CallTreeNode? = null): CallStackTrackEvent =
-        CallStackTrackEvent(CallTreeNode(id, fqn, parent), CallStackTrackEventType.CallStackPushType(fqn))
+    private fun CallStackTrackEventType.on(node: CallTreeNode) = CallStackTrackEvent(node, this)
+
+    private fun pushing(fqn: String) = CallStackTrackEventType.CallStackPushType(fqn)
+    private fun popping() = CallStackTrackEventType.CallStackPopType
+    private fun throwing(throwable: Throwable = RuntimeException("test")) = CallStackTrackEventType.CallStackThrowType(throwable)
 
     @Test
     fun testInitialRoot() {
-        val tree = CallTree(persistentMapOf(), persistentListOf())
-        val event = stubPushEvent(1, "root")
-        val updatedTree = tree.treeAfter(event)
-        
-        assertEquals(1, updatedTree.roots.size)
-        assertEquals(1, updatedTree.roots[0])
-        assertEquals("root", (updatedTree.nodes[1]?.type as? CallTree.Node.Type.Normal)?.name)
+        val rootNode = CallTreeNode(1, "root")
+
+        val treeWithRoot = CallTree(persistentMapOf(), persistentListOf())
+            .treeAfter(pushing("root").on(rootNode))
+
+        assertEquals(1, treeWithRoot.roots.size)
+        assertEquals(1, treeWithRoot.roots[0])
+        assertEquals("root", (treeWithRoot.nodes[1]?.type as? CallTree.Node.Type.Normal)?.name)
     }
 
     @Test
     fun testAddChild() {
         val rootNode = CallTreeNode(1, "root")
-        var tree = CallTree(persistentMapOf(), persistentListOf())
-        tree = tree.treeAfter(CallStackTrackEvent(rootNode, CallStackTrackEventType.CallStackPushType("root")))
+        val childNode = CallTreeNode(2, "child", rootNode)
 
-        val childEvent = stubPushEvent(2, "child", rootNode)
-        val updatedTree = tree.treeAfter(childEvent)
+        val treeWithChild = CallTree(persistentMapOf(), persistentListOf())
+            .treeAfter(pushing("root").on(rootNode))
+            .treeAfter(pushing("child").on(childNode))
 
-        assertEquals(1, updatedTree.nodes[1]?.childIds?.size)
-        assertEquals(2, updatedTree.nodes[1]?.childIds?.get(0))
-        assertEquals("child", (updatedTree.nodes[2]?.type as? CallTree.Node.Type.Normal)?.name)
+        assertEquals(1, treeWithChild.nodes[1]?.childIds?.size)
+        assertEquals(2, treeWithChild.nodes[1]?.childIds?.get(0))
+        assertEquals("child", (treeWithChild.nodes[2]?.type as? CallTree.Node.Type.Normal)?.name)
     }
 
     @Test
     fun testExceptionFramesRemovedWhenCatchingFrameCompletes() {
-        // Setup: root calls catching frame, catching frame calls throwing frame
         val rootNode = CallTreeNode(1, "root")
         val catchingNode = CallTreeNode(2, "catching", rootNode)
         val throwingNode = CallTreeNode(3, "throwing", catchingNode)
 
-        var tree = CallTree(persistentMapOf(), persistentListOf())
+        val treeWithException = CallTree(persistentMapOf(), persistentListOf())
+            .treeAfter(pushing("root").on(rootNode))
+            .treeAfter(pushing("catching").on(catchingNode))
+            .treeAfter(pushing("throwing").on(throwingNode))
+            .treeAfter(throwing().on(throwingNode))
 
-        // Push root
-        tree = tree.treeAfter(CallStackTrackEvent(rootNode, CallStackTrackEventType.CallStackPushType("root")))
+        assertEquals(3, treeWithException.nodes.size)
+        assertEquals(true, treeWithException.nodes[3]?.type is CallTree.Node.Type.ThrewException)
 
-        // Push catching frame
-        tree = tree.treeAfter(CallStackTrackEvent(catchingNode, CallStackTrackEventType.CallStackPushType("catching")))
+        val treeAfterCatch = treeWithException.treeAfter(popping().on(catchingNode))
 
-        // Push throwing frame
-        tree = tree.treeAfter(CallStackTrackEvent(throwingNode, CallStackTrackEventType.CallStackPushType("throwing")))
-
-        // Exception is thrown in throwing frame (changes its type to ThrewException)
-        tree = tree.treeAfter(CallStackTrackEvent(throwingNode, CallStackTrackEventType.CallStackThrowType(RuntimeException("test"))))
-
-        // Verify exception node exists
-        assertEquals(3, tree.nodes.size)
-        assertEquals(true, tree.nodes[3]?.type is CallTree.Node.Type.ThrewException)
-
-        // The catching frame completes (catches the exception)
-        tree = tree.treeAfter(CallStackTrackEvent(catchingNode, CallStackTrackEventType.CallStackPopType))
-
-        // The catching frame and all its children (including exception nodes) should be removed
-        assertEquals(null, tree.nodes[2], "Catching frame should be removed")
-        assertEquals(null, tree.nodes[3], "Throwing frame (with exception) should be removed")
-
-        // Only root should remain
-        assertEquals(1, tree.nodes.size)
-        assertEquals(0, tree.nodes[1]?.childIds?.size)
+        assertEquals(null, treeAfterCatch.nodes[2])
+        assertEquals(null, treeAfterCatch.nodes[3])
+        assertEquals(1, treeAfterCatch.nodes.size)
+        assertEquals(0, treeAfterCatch.nodes[1]?.childIds?.size)
     }
 }
