@@ -90,6 +90,7 @@ private data class MatchResult(
 
 private tailrec fun consumeSpeedChanges(steps: BreakpointSteps, currentSpeed: Int?): Pair<BreakpointSteps, Int?> =
     when (steps) {
+        // TODO: Cover removing this (keeping just else)
         is BreakpointSteps.SetSpeed -> consumeSpeedChanges(steps.next, steps.eventsPerSecond)
         else -> steps to currentSpeed
     }
@@ -147,8 +148,8 @@ fun progressAutomaton(
 
     return AutomatonResult(
         nextAutomaton = BreakpointAutomaton(afterResult.remainingSteps),
-        shouldPauseBefore = beforeResult.matched,
-        shouldPauseAfter = afterResult.matched,
+        shouldPauseBefore = beforeResult.matched, // TODO: Cover = true and = false
+        shouldPauseAfter = afterResult.matched, // TODO: Cover = true and = false
         newSpeed = if (afterResult.newSpeed != currentSpeed) afterResult.newSpeed else null
     )
 }

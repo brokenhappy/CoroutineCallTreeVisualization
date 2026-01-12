@@ -57,15 +57,15 @@ class CallTreeViewModel(
                 val result = progressAutomaton(automaton, event, currentConfig.speed)
                 automaton = result.nextAutomaton
 
-                // Pause before processing if breakpoint matched
+                // TODO: Cover condition = false
                 if (result.shouldPauseBefore) {
                     _executionControl.value = ExecutionControl.Paused
+                    // TODO: Cover removing this wait
                     _executionControl.waitForResume(lastEmission, config, clock)
                 }
 
                 _tree.value = _tree.value.after(event)
 
-                // Update speed if changed
                 result.newSpeed?.let { newSpeed ->
                     val currentConf = config.first()
                     if (currentConf.speed != newSpeed) {
@@ -73,17 +73,17 @@ class CallTreeViewModel(
                     }
                 }
 
-                // Pause after processing if breakpoint matched
+                // TODO: Cover condition = false
                 if (result.shouldPauseAfter) {
                     _executionControl.value = ExecutionControl.Paused
                 }
 
-                // Convert WaitingForSingleStep to Paused after processing one event
+                // TODO: Cover condition = false
                 if (_executionControl.value == ExecutionControl.WaitingForSingleStep) {
                     _executionControl.value = ExecutionControl.Paused
                 }
 
-                // Wait for rate limiting or resume signal
+                // TODO: Cover removing this wait
                 _executionControl.waitForResume(lastEmission, config, clock)
                 lastEmission = clock.now()
             }
@@ -99,6 +99,7 @@ private suspend fun Flow<ExecutionControl>.waitForResume(
 ) {
     combine(configFlow) { control, config -> control to config.speed }
         .distinctUntilChanged()
+        // TODO: Cover non reactive solution (just .first() on both flows)
         .mapLatest { (control, speed) ->
             when (control) {
                 ExecutionControl.WaitingForSingleStep,
@@ -106,14 +107,17 @@ private suspend fun Flow<ExecutionControl>.waitForResume(
                     // Apply rate limiting if speed is set
                     speed?.let { eventsPerSecond ->
                         if (eventsPerSecond > 0) {
+                            // TODO: Cover this vs just delay(1.seconds / eventsPerSecond)
                             val timeSinceLastElement = clock.now() - lastProcessedAt
                             val delayTime = 1.seconds / eventsPerSecond - timeSinceLastElement
                             if (delayTime.isPositive()) delay(delayTime)
                         } else {
+                            // TODO: Cover just continuing
                             awaitCancellation()
                         }
                     }
                 }
+                // TODO: Cover just continuing
                 ExecutionControl.Paused -> awaitCancellation()
             }
         }.first()
