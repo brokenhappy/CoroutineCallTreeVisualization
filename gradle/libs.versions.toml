@@ -22,6 +22,8 @@ compose-plugin = "1.8.2"
 
 # https://github.com/vanniktech/gradle-maven-publish-plugin
 maven-publish = "0.31.0"
+calltreevisualizer = "0.0.1"
+calltreevisualizer-plugin = "0.0.1-2.2.20"
 
 [libraries]
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
@@ -38,6 +40,7 @@ kotlin-annotations-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-annota
 kotlin-compiler = { group = "org.jetbrains.kotlin", name = "kotlin-compiler", version.ref = "kotlin" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlin-gradle-plugin-api  = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin-api", version.ref = "kotlin" }
+calltreevisualizer-coreApi = { group = "com.woutwerkman.calltreevisualizer", name = "stack-tracking-core-api", version.ref = "calltreevisualizer" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 
@@ -53,4 +56,6 @@ kotlin-compose-gradle = { id = "org.jetbrains.compose", version.ref = "compose-p
 gradle-java-test-fixtures = { id = "java-test-fixtures" }
 gradle-idea = { id = "idea" }
 gradle-plugin = { id = "java-gradle-plugin" }
+calltreevisualizer = { id = "com.woutwerkman.calltreevisualizer", version.ref = "calltreevisualizer-plugin" }
+calltreevisualizer-compilerPlugin = { id = "com.woutwerkman.calltreevisualizer.compiler", version.ref = "calltreevisualizer-plugin" }
 vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }

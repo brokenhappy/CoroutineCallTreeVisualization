@@ -15,16 +15,14 @@ buildConfig {
 
     buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"${rootProject.group}\"")
 
-    val pluginProject = project(":compiler-plugin")
-    buildConfigField("String", "KOTLIN_PLUGIN_GROUP", "\"${pluginProject.group}\"")
-    buildConfigField("String", "KOTLIN_PLUGIN_NAME", "\"${pluginProject.name}\"")
-    buildConfigField("String", "KOTLIN_PLUGIN_VERSION", "\"${pluginProject.version}\"")
+    buildConfigField("String", "KOTLIN_PLUGIN_GROUP", "\"${libs.plugins.calltreevisualizer.compilerPlugin.get().pluginId.substringBeforeLast(".")}\"")
+    buildConfigField("String", "KOTLIN_PLUGIN_NAME", "\"compiler-plugin\"") // Artifact ID is not in PluginDependency
+    buildConfigField("String", "KOTLIN_PLUGIN_VERSION", "\"${libs.plugins.calltreevisualizer.compilerPlugin.get().version.requiredVersion}\"")
 
-    val annotationsProject = project(":stack-tracking-core-api")
     buildConfigField(
         type = "String",
         name = "ANNOTATIONS_LIBRARY_COORDINATES",
-        expression = "\"${annotationsProject.group}:${annotationsProject.name}:${annotationsProject.version}\""
+        expression = "\"${libs.calltreevisualizer.coreApi.get().group}:${libs.calltreevisualizer.coreApi.get().name}:${libs.calltreevisualizer.coreApi.get().versionConstraint.requiredVersion}\""
     )
 }
 
