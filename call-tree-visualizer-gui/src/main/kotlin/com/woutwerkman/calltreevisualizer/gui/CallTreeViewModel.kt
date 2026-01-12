@@ -16,7 +16,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
 class CallTreeViewModel(
     private val config: Flow<Config>,
     private val stepSignals: Flow<StepSignal>,
