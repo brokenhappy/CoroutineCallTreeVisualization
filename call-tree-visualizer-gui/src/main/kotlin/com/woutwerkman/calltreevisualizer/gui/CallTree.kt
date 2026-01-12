@@ -124,6 +124,10 @@ fun DebuggerControls(
 }
 
 data class CallTree(val nodes: PersistentMap<Int, Node>, val roots: PersistentList<Int>) {
+    companion object {
+        val Empty: CallTree = CallTree(persistentMapOf(), persistentListOf())
+    }
+
     data class Node(val id: Int, val type: Type, val childIds: PersistentList<Int>) {
         sealed class Type {
             data class Normal(val name: String) : Type()

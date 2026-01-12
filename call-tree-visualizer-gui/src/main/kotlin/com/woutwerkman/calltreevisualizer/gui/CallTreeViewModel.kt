@@ -25,7 +25,7 @@ class CallTreeViewModel(
     private val events: Flow<CallStackTrackEvent>,
     private val clock: Clock = Clock.System
 ) {
-    private val _tree = MutableStateFlow(CallTree(nodes = persistentMapOf(), roots = persistentListOf()))
+    private val _tree = MutableStateFlow(CallTree.Empty)
     val tree: StateFlow<CallTree> = _tree.asStateFlow()
 
     private val _executionControl = MutableStateFlow<ExecutionControl>(ExecutionControl.Paused)
