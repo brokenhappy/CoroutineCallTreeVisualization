@@ -70,7 +70,6 @@ class CallTreeViewModel(
                     }
                 }
 
-                // TODO: Cover condition = false
                 if (result.shouldPauseAfter) {
                     _executionControl.value = ExecutionControl.Paused
                 }
