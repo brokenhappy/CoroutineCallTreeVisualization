@@ -94,7 +94,6 @@ private suspend fun Flow<ExecutionControl>.waitForResume(
     clock: Clock
 ) {
     combine(configFlow) { control, config -> control to config.speed }
-        .distinctUntilChanged()
         .mapLatest { (control, speed) ->
             when (control) {
                 ExecutionControl.WaitingForSingleStep,
