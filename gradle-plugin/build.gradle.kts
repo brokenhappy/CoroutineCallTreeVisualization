@@ -6,17 +6,6 @@ plugins {
     signing
 }
 
-sourceSets {
-    main {
-        java.setSrcDirs(listOf("src"))
-        resources.setSrcDirs(listOf("resources"))
-    }
-    test {
-        java.setSrcDirs(listOf("test"))
-        resources.setSrcDirs(listOf("testResources"))
-    }
-}
-
 dependencies {
     compileOnly(libs.kotlin.gradle.plugin.api)
     testImplementation(libs.kotlin.test.junit5)
@@ -54,7 +43,7 @@ gradlePlugin {
             id = rootProject.group.toString()
             displayName = "Coroutine Call Tree Visualizer"
             description = "Gradle plugin for enabling coroutine call tree visualization in Kotlin projects"
-            implementationClass = "com.woutwerkman.calltreevisualizer.SimpleGradlePlugin"
+            implementationClass = "com.woutwerkman.calltreevisualizer.CallTreeVisualizerGradlePlugin"
             tags.set(listOf("kotlin", "coroutines", "visualization", "debugging"))
         }
     }

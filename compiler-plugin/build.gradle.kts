@@ -7,22 +7,8 @@ plugins {
     signing
 }
 
-sourceSets {
-    main {
-        java.setSrcDirs(listOf("src"))
-        resources.setSrcDirs(listOf("resources"))
-    }
-    testFixtures {
-        java.setSrcDirs(listOf("test-fixtures"))
-    }
-    test {
-        java.setSrcDirs(listOf("test", "test-gen"))
-        resources.setSrcDirs(listOf("testData"))
-    }
-}
-
 idea {
-    module.generatedSourceDirs.add(projectDir.resolve("test-gen"))
+    module.generatedSourceDirs.add(projectDir.resolve("src/test/kotlin"))
 }
 
 val coreApiRuntimeClasspath: Configuration by configurations.creating { isTransitive = false }
@@ -82,10 +68,10 @@ kotlin {
 }
 
 val generateTests by tasks.registering(JavaExec::class) {
-    inputs.dir(layout.projectDirectory.dir("testData"))
+    inputs.dir(layout.projectDirectory.dir("src/test/resources"))
         .withPropertyName("testData")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.dir(layout.projectDirectory.dir("test-gen"))
+    outputs.dir(layout.projectDirectory.dir("src/test/kotlin"))
         .withPropertyName("generatedTests")
 
     classpath = sourceSets.testFixtures.get().runtimeClasspath
