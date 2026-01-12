@@ -47,8 +47,6 @@ fun DebuggerControls(
     modifier: Modifier = Modifier
 ) {
     val isPaused = executionControl is ExecutionControl.Paused
-    val canStep = isPaused
-    val canResume = isPaused
 
     Row(
         modifier = modifier
@@ -59,16 +57,16 @@ fun DebuggerControls(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val stepColor = if (canStep) Color(0xFF3574F0) else Color.Gray.copy(alpha = 0.4f)
-        val resumeColor = if (canResume) Color(0xFF59A869) else Color.Gray.copy(alpha = 0.4f)
+        val stepColor = if (isPaused) Color(0xFF3574F0) else Color.Gray.copy(alpha = 0.4f)
+        val resumeColor = if (isPaused) Color(0xFF59A869) else Color.Gray.copy(alpha = 0.4f)
 
         // Step Button (styled after Step Over)
         Box(
             modifier = Modifier
                 .size(32.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .let { if (canStep) it.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))) else it }
-                .let { if (canStep) it.clickable { onStep() } else it }
+                .let { if (isPaused) it.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))) else it }
+                .let { if (isPaused) it.clickable { onStep() } else it }
                 .padding(6.dp)
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -103,8 +101,8 @@ fun DebuggerControls(
             modifier = Modifier
                 .size(32.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .let { if (canResume) it.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))) else it }
-                .let { if (canResume) it.clickable { onResume() } else it }
+                .let { if (isPaused) it.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))) else it }
+                .let { if (isPaused) it.clickable { onResume() } else it }
                 .padding(6.dp)
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
