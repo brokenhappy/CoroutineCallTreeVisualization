@@ -74,7 +74,6 @@ class CallTreeViewModel(
                     _executionControl.value = ExecutionControl.Paused
                 }
 
-                // TODO: Cover condition = false
                 if (_executionControl.value == ExecutionControl.WaitingForSingleStep) {
                     _executionControl.value = ExecutionControl.Paused
                 }
