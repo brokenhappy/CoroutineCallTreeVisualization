@@ -93,7 +93,6 @@ private suspend fun Flow<ExecutionControl>.waitForResume(
 ) {
     combine(configFlow) { control, config -> control to config.speed }
         .distinctUntilChanged()
-        // TODO: Cover non reactive solution (just .first() on both flows)
         .mapLatest { (control, speed) ->
             when (control) {
                 ExecutionControl.WaitingForSingleStep,
