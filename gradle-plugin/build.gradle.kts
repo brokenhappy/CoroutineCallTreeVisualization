@@ -2,8 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.buildconfig)
     alias(libs.plugins.gradle.plugin)
-    `maven-publish`
-    signing
+    alias(libs.plugins.vanniktech.publish)
 }
 
 dependencies {
@@ -29,10 +28,6 @@ buildConfig {
     )
 }
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
 
 gradlePlugin {
     website.set("https://github.com/brokenhappy/CoroutineCallTreeVisualization")
@@ -46,5 +41,13 @@ gradlePlugin {
             implementationClass = "com.woutwerkman.calltreevisualizer.CallTreeVisualizerGradlePlugin"
             tags.set(listOf("kotlin", "coroutines", "tracking", "debugging"))
         }
+    }
+}
+
+configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+    coordinates(rootProject.group.toString(), "gradle-plugin", rootProject.version.toString())
+    pom {
+        name.set("Coroutine Call Tree Visualization - Gradle Plugin")
+        description.set("Gradle plugin to easily apply the Coroutine Call Tree Visualization compiler plugin")
     }
 }

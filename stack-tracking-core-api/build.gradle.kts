@@ -5,8 +5,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.binary.compatibility.validator)
-    `maven-publish`
-    signing
+    alias(libs.plugins.vanniktech.publish)
 }
 
 kotlin {
@@ -49,11 +48,12 @@ kotlin {
     applyDefaultHierarchyTemplate()
 }
 
-publishing {
-    publications.withType<MavenPublication> {
-        pom {
-            name.set("Coroutine Call Tree Visualization - Core API")
-            description.set("Core API and annotations for coroutine call tree tracking")
-        }
+version = "0.0.1"
+
+configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+    coordinates(rootProject.group.toString(), "stack-tracking-core-api", version.toString())
+    pom {
+        name.set("Coroutine Call Tree Visualization - Core API")
+        description.set("Core API and annotations for coroutine call tree tracking")
     }
 }

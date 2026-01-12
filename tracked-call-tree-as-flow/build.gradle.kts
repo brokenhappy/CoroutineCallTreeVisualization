@@ -3,8 +3,7 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.binary.compatibility.validator)
-    `maven-publish`
-    signing
+    alias(libs.plugins.vanniktech.publish)
 }
 
 dependencies {
@@ -52,11 +51,12 @@ kotlin {
     applyDefaultHierarchyTemplate()
 }
 
-publishing {
-    publications.withType<MavenPublication> {
-        pom {
-            name.set("Coroutine Call Tree Visualization - Tracked Call Tree as Flow")
-            description.set("Flow-based integration for capturing and tracking coroutine call trees")
-        }
+version = "0.0.1"
+
+configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+    coordinates(rootProject.group.toString(), "tracked-call-tree-as-flow", version.toString())
+    pom {
+        name.set("Coroutine Call Tree Visualization - Tracked Call Tree as Flow")
+        description.set("Flow-based integration for capturing and tracking coroutine call trees")
     }
 }

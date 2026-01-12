@@ -20,6 +20,9 @@ buildconfig = "5.6.5"
 compose = "1.10.0"
 compose-plugin = "1.8.2"
 
+# https://github.com/vanniktech/gradle-maven-publish-plugin
+maven-publish = "0.31.0"
+
 [libraries]
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -50,3 +53,4 @@ kotlin-compose-gradle = { id = "org.jetbrains.compose", version.ref = "compose-p
 gradle-java-test-fixtures = { id = "java-test-fixtures" }
 gradle-idea = { id = "idea" }
 gradle-plugin = { id = "java-gradle-plugin" }
+vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
