@@ -23,9 +23,7 @@ kotlin {
 
     js().nodejs()
 
-    jvm {
-        withJava()
-    }
+    jvm()
 
     linuxArm64()
     linuxX64()
