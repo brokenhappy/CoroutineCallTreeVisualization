@@ -2,6 +2,7 @@
 
 package com.woutwerkman.calltreevisualizer.gui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
@@ -42,14 +43,21 @@ suspend fun main() {
 
     val config = MutableStateFlow(Config())
     val stepSignals = MutableSharedFlow<StepSignal>(replay = 10)
-    runApp(config, stepSignals, breakpointProgram, onConfigChange = { config.value = it })
+    runApp(
+        currentConfig = config,
+        stepSignals = stepSignals,
+        breakpointProgram = breakpointProgram,
+        onConfigChange = { config.value = it },
+        program = { programWithAllTypes() },
+    )
 }
 
 private suspend fun runApp(
     currentConfig: Flow<Config>,
     stepSignals: MutableSharedFlow<StepSignal>,
     breakpointProgram: BreakpointProgram,
-    onConfigChange: (Config) -> Unit
+    onConfigChange: (Config) -> Unit,
+    program: suspend () -> Unit,
 ) {
     awaitApplication {
         val config by currentConfig.collectAsState(Config())
@@ -76,35 +84,51 @@ private suspend fun runApp(
                 }
             },
         ) {
-            val darkTheme = when (config.themeMode) {
-                ThemeMode.System -> androidx.compose.foundation.isSystemInDarkTheme()
-                ThemeMode.Light -> false
-                ThemeMode.Dark -> true
-            }
-            CallTreeTheme(darkTheme = darkTheme) {
-                MenuBar {
-                    Menu("Help") {
-                        Item("${if (settingsIsOpen) "Close" else "Open"} Settings", onClick = { settingsIsOpen = !settingsIsOpen })
-                    }
+            MenuBar {
+                Menu("Help") {
+                    Item(
+                        "${if (settingsIsOpen) "Close" else "Open"} Settings",
+                        onClick = { settingsIsOpen = !settingsIsOpen },
+                    )
                 }
-                CompositionLocalProvider(
-                    LocalDensity provides Density(LocalDensity.current.density * config.zoom)
-                ) {
-                    Surface(color = MaterialTheme.colors.background) {
-                        Column {
-                            if (settingsIsOpen) {
-                                Settings(config, onConfigChange)
-                            }
-                            Box(modifier = Modifier.weight(1f)) {
-                                CallTreeUI(
-                                    config = currentConfig,
-                                    stepSignals = stepSignals,
-                                    breakpointProgram = breakpointProgram,
-                                    onConfigChange = onConfigChange,
-                                    program = { programWithAllTypes() }
-                                )
-                            }
-                        }
+            }
+            AppUi(config, onConfigChange, settingsIsOpen, currentConfig, stepSignals, breakpointProgram, program)
+        }
+    }
+}
+
+@Composable
+private fun AppUi(
+    config: Config,
+    onConfigChange: (Config) -> Unit,
+    settingsIsOpen: Boolean,
+    currentConfig: Flow<Config>,
+    stepSignals: MutableSharedFlow<StepSignal>,
+    breakpointProgram: BreakpointProgram,
+    program: suspend () -> Unit,
+) {
+    val darkTheme = when (config.themeMode) {
+        ThemeMode.System -> isSystemInDarkTheme()
+        ThemeMode.Light -> false
+        ThemeMode.Dark -> true
+    }
+    CallTreeTheme(darkTheme = darkTheme) {
+        CompositionLocalProvider(
+            LocalDensity provides Density(LocalDensity.current.density * config.zoom)
+        ) {
+            Surface(color = MaterialTheme.colors.background) {
+                Column {
+                    if (settingsIsOpen) {
+                        Settings(config, onConfigChange)
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        CallTreeUI(
+                            config = currentConfig,
+                            stepSignals = stepSignals,
+                            breakpointProgram = breakpointProgram,
+                            onConfigChange = onConfigChange,
+                            program = program,
+                        )
                     }
                 }
             }
