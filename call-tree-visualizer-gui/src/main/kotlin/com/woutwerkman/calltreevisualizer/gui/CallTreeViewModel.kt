@@ -3,8 +3,6 @@
 package com.woutwerkman.calltreevisualizer.gui
 
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
