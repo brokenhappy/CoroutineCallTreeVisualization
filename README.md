@@ -38,11 +38,22 @@ The compiler plugin transforms every `suspend` function (unless marked with `@No
 
 ### 1. Apply the Gradle Plugin
 
-Add the plugin to your `build.gradle.kts`:
+Add the plugin to your `settings.gradle.kts`:
+
+```kotlin
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+```
+
+And in your `build.gradle.kts`:
 
 ```kotlin
 plugins {
-    id("com.woutwerkman.calltreevisualizer") version "1.0-SNAPSHOT"
+    id("com.woutwerkman.calltreevisualizer") version "0.0.1-2.2.20"
 }
 ```
 
@@ -57,7 +68,29 @@ suspend fun internalWork() {
 }
 ```
 
-### 3. Running the Visualizer
+### 3. Collecting Tracking Events
+
+You can use the `trackingCallStacks` function to collect events as a Flow:
+
+```kotlin
+// Will print:
+// Event type: CallStackPushType of function named fully.qualified.name.of.foo
+// Event type: CallStackPopType of function named fully.qualified.name.of.foo
+suspend fun main() {
+    trackingCallStacks {
+        foo()
+    }.collect {
+        println("Event type: ${it.eventType} of function named ${it.node.functionFqn}")
+    }
+}
+```
+
+For more advanced usage, see the detailed READMEs in the subprojects:
+- [Compiler Plugin](compiler-plugin/README.md) - Details on how the code is transformed.
+- [Core API](stack-tracking-core-api/README.md) - Information about annotations and the tracking interface.
+- [GUI Visualizer](call-tree-visualizer-gui/README.md) - How to use the real-time visualization tool.
+
+### 4. Running the Visualizer
 
 You can use the `trackingCallStacks` function from the `:tracked-call-tree-as-flow` module to collect events and display them in the `CallTreeUI` provided by the `:call-tree-visualizer-gui` module.
 
