@@ -34,7 +34,6 @@ import com.woutwerkman.calltreevisualizer.owningGlobalScope
 import kotlinx.collections.immutable.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import org.jetbrains.compose.resources.painterResource
 import java.awt.Cursor
 import kotlin.time.ExperimentalTime
@@ -121,11 +120,12 @@ fun DebuggerControls(
 @OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
 @Composable
 fun CallTreeUI(
-    config: Flow<Config>,
-    stepSignals: MutableSharedFlow<StepSignal>,
+    program: suspend () -> Unit,
     breakpointProgram: BreakpointProgram,
+    config: Flow<Config>,
     onConfigChange: (Config) -> Unit,
-    program: suspend () -> Unit
+    stepSignals: Flow<StepSignal>,
+    onStepSignal: (StepSignal) -> Unit,
 ) {
     val viewModel = remember(program, breakpointProgram) {
         CallTreeViewModel(
@@ -154,8 +154,8 @@ fun CallTreeUI(
         CallTreeUI(tree)
         DebuggerControls(
             executionControl = executionControl,
-            onStep = { stepSignals.tryEmit(StepSignal.Step) },
-            onResume = { stepSignals.tryEmit(StepSignal.Resume) },
+            onStep = { onStepSignal(StepSignal.Step) },
+            onResume = { onStepSignal(StepSignal.Resume) },
             modifier = Modifier.align(Alignment.TopEnd)
         )
     }

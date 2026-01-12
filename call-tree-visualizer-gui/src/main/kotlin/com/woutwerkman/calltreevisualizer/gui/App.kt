@@ -24,7 +24,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import kotlin.time.ExperimentalTime
 
 @ExperimentalCoroutinesApi
@@ -44,25 +43,26 @@ suspend fun main() {
     val config = MutableStateFlow(Config())
     val stepSignals = MutableSharedFlow<StepSignal>(replay = 10)
     runApp(
-        currentConfig = config,
-        stepSignals = stepSignals,
-        breakpointProgram = breakpointProgram,
-        onConfigChange = { config.value = it },
         program = { programWithAllTypes() },
+        breakpointProgram = breakpointProgram,
+        currentConfig = config,
+        onConfigChange = { config.value = it },
+        stepSignals = stepSignals,
+        onStepSignal = { stepSignals.tryEmit(it) },
     )
 }
 
 private suspend fun runApp(
-    currentConfig: Flow<Config>,
-    stepSignals: MutableSharedFlow<StepSignal>,
-    breakpointProgram: BreakpointProgram,
-    onConfigChange: (Config) -> Unit,
     program: suspend () -> Unit,
+    breakpointProgram: BreakpointProgram,
+    currentConfig: Flow<Config>,
+    onConfigChange: (Config) -> Unit,
+    stepSignals: Flow<StepSignal>,
+    onStepSignal: (StepSignal) -> Unit,
 ) {
     awaitApplication {
         val config by currentConfig.collectAsState(Config())
         var settingsIsOpen by remember { mutableStateOf(false) }
-        val scope = rememberCoroutineScope()
         Window(
             onCloseRequest = ::exitApplication,
             title = "Call Tree Visualizer",
@@ -73,11 +73,11 @@ private suspend fun runApp(
                         true
                     }
                     event.key == Key.F8 -> {
-                        scope.launch { stepSignals.emit(StepSignal.Step) }
+                        onStepSignal(StepSignal.Step)
                         true
                     }
                     event.key == Key.F9 || event.key == Key.R -> {
-                        scope.launch { stepSignals.emit(StepSignal.Resume) }
+                        onStepSignal(StepSignal.Resume)
                         true
                     }
                     else -> false
@@ -92,20 +92,30 @@ private suspend fun runApp(
                     )
                 }
             }
-            AppUi(config, onConfigChange, settingsIsOpen, currentConfig, stepSignals, breakpointProgram, program)
+            AppUi(
+                program = program,
+                breakpointProgram = breakpointProgram,
+                settingsIsOpen = settingsIsOpen,
+                config = config,
+                currentConfig = currentConfig,
+                onConfigChange = onConfigChange,
+                stepSignals = stepSignals,
+                onStepSignal = onStepSignal,
+            )
         }
     }
 }
 
 @Composable
 private fun AppUi(
-    config: Config,
-    onConfigChange: (Config) -> Unit,
-    settingsIsOpen: Boolean,
-    currentConfig: Flow<Config>,
-    stepSignals: MutableSharedFlow<StepSignal>,
-    breakpointProgram: BreakpointProgram,
     program: suspend () -> Unit,
+    breakpointProgram: BreakpointProgram,
+    settingsIsOpen: Boolean,
+    config: Config,
+    currentConfig: Flow<Config>,
+    onConfigChange: (Config) -> Unit,
+    stepSignals: Flow<StepSignal>,
+    onStepSignal: (StepSignal) -> Unit,
 ) {
     val darkTheme = when (config.themeMode) {
         ThemeMode.System -> isSystemInDarkTheme()
@@ -123,11 +133,12 @@ private fun AppUi(
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         CallTreeUI(
-                            config = currentConfig,
-                            stepSignals = stepSignals,
-                            breakpointProgram = breakpointProgram,
-                            onConfigChange = onConfigChange,
                             program = program,
+                            breakpointProgram = breakpointProgram,
+                            config = currentConfig,
+                            onConfigChange = onConfigChange,
+                            stepSignals = stepSignals,
+                            onStepSignal = onStepSignal,
                         )
                     }
                 }
