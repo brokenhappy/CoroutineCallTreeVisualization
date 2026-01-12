@@ -2,62 +2,51 @@ package com.woutwerkman.calltreevisualizer.gui
 
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType.CallStackThrowType
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
-import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class CallTreeTest {
-
-    private fun CallStackTrackEventType.on(node: CallTreeNode) = CallStackTrackEvent(node, this)
-
-    private fun pushing() = CallStackTrackEventType.CallStackPushType
-    private fun popping() = CallStackTrackEventType.CallStackPopType
-    private fun throwing(throwable: Throwable = RuntimeException("test")) = CallStackTrackEventType.CallStackThrowType(throwable)
-
     @Test
     fun `pushing a root node adds it to the tree`() {
-        val rootNode = CallTreeNode(1, "root")
+        val tree = CallStack.Empty
+            .afterPushing("root")
+            .tree
 
-        val treeWithRoot = CallTree(persistentMapOf(), persistentListOf())
-            .after(pushing().on(rootNode))
-
-        assertEquals(1, treeWithRoot.roots.size)
-        assertEquals(1, treeWithRoot.roots[0])
-        assertEquals("root", (treeWithRoot.nodes[1]?.type as? CallTree.Node.Type.Normal)?.name)
+        assertEquals(1, tree.roots.size)
+        assertEquals(1, tree.roots[0])
+        assertEquals("root", (tree.nodes[1]?.type as? CallTree.Node.Type.Normal)?.name)
     }
 
     @Test
     fun `pushing a child node adds it to its parent`() {
-        val rootNode = CallTreeNode(1, "root")
-        val childNode = CallTreeNode(2, "child", rootNode)
+        val tree = CallStack.Empty
+            .afterPushing("root")
+            .afterPushing("child")
+            .tree
 
-        val treeWithChild = CallTree(persistentMapOf(), persistentListOf())
-            .after(pushing().on(rootNode))
-            .after(pushing().on(childNode))
-
-        assertEquals(1, treeWithChild.nodes[1]?.childIds?.size)
-        assertEquals(2, treeWithChild.nodes[1]?.childIds?.get(0))
-        assertEquals("child", (treeWithChild.nodes[2]?.type as? CallTree.Node.Type.Normal)?.name)
+        assertEquals(1, tree.nodes[1]?.childIds?.size)
+        assertEquals(2, tree.nodes[1]?.childIds?.get(0))
+        assertEquals("child", (tree.nodes[2]?.type as? CallTree.Node.Type.Normal)?.name)
     }
 
     @Test
     fun `popping a catching frame removes it and all exception child nodes`() {
-        val rootNode = CallTreeNode(1, "root")
-        val catchingNode = CallTreeNode(2, "catching", rootNode)
-        val throwingNode = CallTreeNode(3, "throwing", catchingNode)
+        val stackWithException = CallStack.Empty
+            .afterPushing("root")
+            .afterPushing("catching")
+            .afterPushing("throwing")
+            .afterThrowing()
 
-        val treeWithException = CallTree(persistentMapOf(), persistentListOf())
-            .after(pushing().on(rootNode))
-            .after(pushing().on(catchingNode))
-            .after(pushing().on(throwingNode))
-            .after(throwing().on(throwingNode))
+        assertEquals(3, stackWithException.tree.nodes.size)
+        assertEquals(true, stackWithException.tree.nodes[3]?.type is CallTree.Node.Type.ThrewException)
 
-        assertEquals(3, treeWithException.nodes.size)
-        assertEquals(true, treeWithException.nodes[3]?.type is CallTree.Node.Type.ThrewException)
-
-        val treeAfterCatch = treeWithException.after(popping().on(catchingNode))
+        val treeAfterCatch = stackWithException
+            .afterPopping()
+            .tree
 
         assertEquals(null, treeAfterCatch.nodes[2])
         assertEquals(null, treeAfterCatch.nodes[3])
@@ -65,3 +54,63 @@ class CallTreeTest {
         assertEquals(0, treeAfterCatch.nodes[1]?.childIds?.size)
     }
 }
+
+/**
+ * In the tests, most call trees are just stacks; with this assumption this builds some simpler APIs on top
+ * Another assumption is that the Node ids are simply positive integers increasing from the root.
+ */
+private data class CallStack(val tree: CallTree, val eventNodes: PersistentMap<Int, CallTreeNode>) {
+    companion object {
+        val Empty = CallStack(CallTree.Empty, persistentMapOf())
+    }
+}
+
+private fun CallStack.leafNode(): CallTreeNode? {
+    if (tree.nodes.isEmpty()) return null
+    val root = tree
+        .roots
+        .singleOrNull()
+        ?.let { tree.nodes[it] }
+        .let { it ?: error("These test utility functions only make sense on trees that are single call stack") }
+
+    return generateSequence(root) { it.childIds.singleOrNull()?.let { tree.nodes[it] } }
+        .last { it.type is CallTree.Node.Type.Normal }
+        .let { eventNodes[it.id] }
+}
+
+private fun CallStack.afterPushing(fqn: String): CallStack {
+    val event = pushing(fqn).on(leafNode())
+    return CallStack(
+        tree.after(event),
+        eventNodes.put(event.node.id, event.node),
+    )
+}
+
+private fun CallStack.afterPopping(): CallStack {
+    val leaf = leafNode()!!
+    return CallStack(
+        tree.after(popping(leaf)),
+        eventNodes.remove(leaf.id, leaf),
+    )
+}
+
+private fun CallStack.afterThrowing(throwable: Throwable = IgnoredException()): CallStack {
+    val leaf = leafNode()!!
+    return CallStack(
+        tree.after(throwing(throwable).from(leaf)),
+        eventNodes.remove(leaf.id, leaf),
+    )
+}
+
+private data class PushingDsl(val fqn: String)
+private fun pushing(fqn: String): PushingDsl = PushingDsl(fqn)
+private fun PushingDsl.on(node: CallTreeNode?): CallStackTrackEvent =
+    CallStackTrackEvent(CallTreeNode((node?.id ?: 0) + 1, fqn, node), CallStackTrackEventType.CallStackPushType)
+
+private fun popping(leaf: CallTreeNode): CallStackTrackEvent =
+    CallStackTrackEvent(leaf, CallStackTrackEventType.CallStackPopType)
+
+private fun throwing(throwable: Throwable = IgnoredException()): CallStackThrowType = CallStackThrowType(throwable)
+private fun CallStackThrowType.from(node: CallTreeNode): CallStackTrackEvent = CallStackTrackEvent(node, this)
+
+class IgnoredException: Throwable(null, null, false, false)
