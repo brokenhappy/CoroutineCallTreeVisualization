@@ -2,7 +2,7 @@ package com.woutwerkman.calltreevisualizer.gui
 
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
-import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeEventNode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 class BreakpointAutomatonTest {
 
     private fun stubEvent(fqn: String, type: CallStackTrackEventType = CallStackTrackEventType.CallStackPushType): CallStackTrackEvent {
-        return CallStackTrackEvent(CallTreeNode(1, fqn), type)
+        return CallStackTrackEvent(CallTreeEventNode(1, fqn), type)
     }
 
     @Test

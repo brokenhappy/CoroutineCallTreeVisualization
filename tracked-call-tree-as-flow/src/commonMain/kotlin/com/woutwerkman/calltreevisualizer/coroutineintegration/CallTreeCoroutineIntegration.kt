@@ -15,11 +15,10 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.coroutines.cancellation.CancellationException
 
+public class CallTreeEventNode(public val id: Int, public val functionFqn: String, public val parent: CallTreeEventNode? = null)
 
-public class CallTreeNode(public val id: Int, public val functionFqn: String, public val parent: CallTreeNode? = null)
-
-public class CallStackTrackEvent(public val node: CallTreeNode, public val eventType: CallStackTrackEventType) {
-    public operator fun component1(): CallTreeNode = node
+public class CallStackTrackEvent(public val node: CallTreeEventNode, public val eventType: CallStackTrackEventType) {
+    public operator fun component1(): CallTreeEventNode = node
     public operator fun component2(): CallStackTrackEventType = eventType
 }
 
@@ -45,9 +44,9 @@ public fun trackingCallStacks(
             throw c
         }
     }
-    fun CallTreeNode?.toStackTrackedCoroutineContext(): StackTrackingContext = object : StackTrackingContext {
+    fun CallTreeEventNode?.toStackTrackedCoroutineContext(): StackTrackingContext = object : StackTrackingContext {
         override suspend fun <T> track(functionFqn: String, child: suspend () -> T): T {
-            val childNode = CallTreeNode(nodeCounter.incrementAndFetch(), functionFqn, this@toStackTrackedCoroutineContext)
+            val childNode = CallTreeEventNode(nodeCounter.incrementAndFetch(), functionFqn, this@toStackTrackedCoroutineContext)
             sendOnFlowScope(CallStackTrackEvent(childNode, CallStackTrackEventType.CallStackPushType))
             var iHaveNoClueAtAllWhyThisHelps: Job? = null
             return try {

@@ -3,7 +3,7 @@ package com.woutwerkman.calltreevisualizer.gui
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType.CallStackThrowType
-import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeEventNode
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlin.test.Test
@@ -59,13 +59,13 @@ class CallTreeTest {
  * In the tests, most call trees are just stacks; with this assumption this builds some simpler APIs on top
  * Another assumption is that the Node ids are simply positive integers increasing from the root.
  */
-private data class CallStack(val tree: CallTree, val eventNodes: PersistentMap<Int, CallTreeNode>) {
+private data class CallStack(val tree: CallTree, val eventNodes: PersistentMap<Int, CallTreeEventNode>) {
     companion object {
         val Empty = CallStack(CallTree.Empty, persistentMapOf())
     }
 }
 
-private fun CallStack.leafNode(): CallTreeNode? {
+private fun CallStack.leafNode(): CallTreeEventNode? {
     if (tree.nodes.isEmpty()) return null
     val root = tree
         .roots
@@ -104,13 +104,13 @@ private fun CallStack.afterThrowing(throwable: Throwable = IgnoredException()): 
 
 private data class PushingDsl(val fqn: String)
 private fun pushing(fqn: String): PushingDsl = PushingDsl(fqn)
-private fun PushingDsl.on(node: CallTreeNode?): CallStackTrackEvent =
-    CallStackTrackEvent(CallTreeNode((node?.id ?: 0) + 1, fqn, node), CallStackTrackEventType.CallStackPushType)
+private fun PushingDsl.on(node: CallTreeEventNode?): CallStackTrackEvent =
+    CallStackTrackEvent(CallTreeEventNode((node?.id ?: 0) + 1, fqn, node), CallStackTrackEventType.CallStackPushType)
 
-private fun popping(leaf: CallTreeNode): CallStackTrackEvent =
+private fun popping(leaf: CallTreeEventNode): CallStackTrackEvent =
     CallStackTrackEvent(leaf, CallStackTrackEventType.CallStackPopType)
 
 private fun throwing(throwable: Throwable = IgnoredException()): CallStackThrowType = CallStackThrowType(throwable)
-private fun CallStackThrowType.from(node: CallTreeNode): CallStackTrackEvent = CallStackTrackEvent(node, this)
+private fun CallStackThrowType.from(node: CallTreeEventNode): CallStackTrackEvent = CallStackTrackEvent(node, this)
 
 class IgnoredException: Throwable(null, null, false, false)

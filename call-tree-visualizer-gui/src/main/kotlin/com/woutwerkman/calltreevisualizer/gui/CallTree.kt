@@ -31,7 +31,7 @@ import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.res
 import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Res
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
-import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeNode
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeEventNode
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
 import com.woutwerkman.calltreevisualizer.owningGlobalScope
 import kotlinx.collections.immutable.*
@@ -420,7 +420,7 @@ private fun FullSizeDiagonalRedCross() {
     }
 }
 
-private fun CallTree.addThrownException(node: CallTreeNode, wasCancellation: Boolean): CallTree = copy(
+private fun CallTree.addThrownException(node: CallTreeEventNode, wasCancellation: Boolean): CallTree = copy(
     nodes = nodes.update(node.id) {
         it!!.copy(type = CallTree.Node.Type.ThrewException(node.parent?.id, wasCancellation))
     },
