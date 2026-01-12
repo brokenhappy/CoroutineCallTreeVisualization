@@ -102,17 +102,15 @@ private suspend fun Flow<ExecutionControl>.waitForResume(
                     // Apply rate limiting if speed is set
                     speed?.let { eventsPerSecond ->
                         if (eventsPerSecond > 0) {
-                            // TODO: Cover this vs just delay(1.seconds / eventsPerSecond)
+                            // Account for time already elapsed since last event to maintain accurate rate limiting
                             val timeSinceLastElement = clock.now() - lastProcessedAt
                             val delayTime = 1.seconds / eventsPerSecond - timeSinceLastElement
                             if (delayTime.isPositive()) delay(delayTime)
                         } else {
-                            // TODO: Cover just continuing
                             awaitCancellation()
                         }
                     }
                 }
-                // TODO: Cover just continuing
                 ExecutionControl.Paused -> awaitCancellation()
             }
         }.first()

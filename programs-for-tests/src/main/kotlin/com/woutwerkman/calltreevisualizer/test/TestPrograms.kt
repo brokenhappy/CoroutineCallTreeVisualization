@@ -1,6 +1,7 @@
 package com.woutwerkman.calltreevisualizer.test
 
 import kotlinx.coroutines.*
+import kotlin.time.Duration
 
 suspend fun simpleCall() {
     foo()
@@ -57,4 +58,8 @@ suspend fun cancellingCall() {
         yield()
         job.cancelAndJoin()
     }
+}
+
+suspend fun trackedDelay(delay: Duration) {
+    delay(delay)
 }

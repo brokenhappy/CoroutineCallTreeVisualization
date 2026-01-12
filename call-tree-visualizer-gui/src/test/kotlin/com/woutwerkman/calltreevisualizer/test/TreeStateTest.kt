@@ -2,6 +2,7 @@
 
 package com.woutwerkman.calltreevisualizer.test
 
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import com.woutwerkman.calltreevisualizer.gui.*
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
 import com.woutwerkman.calltreevisualizer.owningGlobalScope
@@ -9,15 +10,18 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.testTimeSource
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlin.time.TimeSource
+import kotlin.time.measureTime
 
 class TreeStateTest {
     @Test
@@ -172,6 +176,44 @@ class TreeStateTest {
             job.cancelAndJoin()
         }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `the time spend in the program does not affect time between events`() = runTest(timeout = 2.seconds) {
+        val timeTaken = testTimeSource.measureTime {
+            val result = treeAfterDebuggerProgramOrNullIfProgramFinished(
+                debuggerProgram = changeSpeed(1)
+                    .then(breakAfter(functionCall("function that never gets called"))),
+                interactions = listOf(Interaction.Resume),
+                program = {
+                    trackedDelay(.5.seconds)
+                },
+            )
+            assertNull(result)
+        }
+        assertEquals(timeTaken, 2.seconds)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `the time spend processing events does not affect time waited between events`() = runTest(timeout = 2.seconds) {
+        val timeTaken = testTimeSource.measureTime {
+            val result = treeAfterDebuggerProgramOrNullIfProgramFinished(
+                debuggerProgram = changeSpeed(1)
+                    .then(breakAfter(functionCall("function that never gets called"))),
+                interactions = listOf(Interaction.Resume),
+                events = trackingCallStacks {
+                    owningGlobalScope {
+                        bar()
+                    }
+                }.onEach {
+                    delay(.5.seconds) // Simulate processing time of events
+                },
+            )
+            assertNull(result)
+        }
+        assertEquals(timeTaken, 2.seconds)
+    }
 }
 
 private class TestClock(private val timeSource: TimeSource.WithComparableMarks) : Clock {
@@ -189,6 +231,20 @@ private suspend fun TestScope.treeAfterDebuggerProgramOrNullIfProgramFinished(
     program: suspend () -> Unit,
     debuggerProgram: BreakpointProgram,
     interactions: List<Interaction>
+): CallTree? = treeAfterDebuggerProgramOrNullIfProgramFinished(
+    events = trackingCallStacks {
+        owningGlobalScope {
+            program()
+        }
+    },
+    debuggerProgram,
+    interactions,
+)
+
+private suspend fun TestScope.treeAfterDebuggerProgramOrNullIfProgramFinished(
+    events: Flow<CallStackTrackEvent>,
+    debuggerProgram: BreakpointProgram,
+    interactions: List<Interaction>
 ): CallTree? = coroutineScope {
     val config = MutableStateFlow(Config())
     val stepSignals = MutableSharedFlow<StepSignal>(replay = 1)
@@ -197,12 +253,8 @@ private suspend fun TestScope.treeAfterDebuggerProgramOrNullIfProgramFinished(
         stepSignals = stepSignals,
         breakpointProgram = debuggerProgram,
         onConfigChange = { config.value = it },
-        events = trackingCallStacks {
-            owningGlobalScope {
-                program()
-            }
-        },
-        clock = TestClock(testScheduler.timeSource)
+        events = events,
+        clock = TestClock(testScheduler.timeSource),
     )
 
     race(
