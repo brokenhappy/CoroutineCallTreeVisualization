@@ -35,16 +35,16 @@ java {
 }
 
 gradlePlugin {
-    website.set("https://github.com/Woutwo/CoroutineCallTreeVisualization")
-    vcsUrl.set("https://github.com/Woutwo/CoroutineCallTreeVisualization.git")
+    website.set("https://github.com/brokenhappy/CoroutineCallTreeVisualization")
+    vcsUrl.set("https://github.com/brokenhappy/CoroutineCallTreeVisualization.git")
 
     plugins {
         create("callTreeVisualizerPlugin") {
             id = rootProject.group.toString()
-            displayName = "Coroutine Call Tree Visualizer"
-            description = "Gradle plugin for enabling coroutine call tree visualization in Kotlin projects"
+            displayName = "Coroutine Tracker Compiler plugin"
+            description = "A Gradle plugin that applies a Coroutine tracking Compiler plugin"
             implementationClass = "com.woutwerkman.calltreevisualizer.CallTreeVisualizerGradlePlugin"
-            tags.set(listOf("kotlin", "coroutines", "visualization", "debugging"))
+            tags.set(listOf("kotlin", "coroutines", "tracking", "debugging"))
         }
     }
 }

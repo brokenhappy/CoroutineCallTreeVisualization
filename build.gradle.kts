@@ -35,7 +35,7 @@ subprojects {
                 pom {
                     name.set("Coroutine Call Tree Visualization")
                     description.set("Tools to visualize the execution of Kotlin suspend functions in real-time")
-                    url.set("https://github.com/Woutwo/CoroutineCallTreeVisualization")
+                    url.set("https://github.com/brokenhappy")
 
                     licenses {
                         license {
@@ -48,14 +48,14 @@ subprojects {
                         developer {
                             id.set("woutwo")
                             name.set("Wout Werkman")
-                            email.set("wout.werkman@gmail.com")
+                            email.set("wout_werkman@hotmail.com")
                         }
                     }
 
                     scm {
-                        connection.set("scm:git:git://github.com/Woutwo/CoroutineCallTreeVisualization.git")
-                        developerConnection.set("scm:git:ssh://github.com:Woutwo/CoroutineCallTreeVisualization.git")
-                        url.set("https://github.com/Woutwo/CoroutineCallTreeVisualization")
+                        connection.set("scm:git:git://github.com/brokenhappy/CoroutineCallTreeVisualization.git")
+                        developerConnection.set("scm:git:ssh://github.com/brokenhappy/CoroutineCallTreeVisualization.git")
+                        url.set("https://github.com/brokenhappy")
                     }
                 }
             }
