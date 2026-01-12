@@ -139,23 +139,23 @@ class TreeStateTest {
     @Test
     fun `changeSpeed triggers config change exactly once`() = runTest(timeout = 2.seconds) {
         var configChangeCount = 0
-        val breakpointProgram = changeSpeed(10).then(breakAfter(functionCall("com.woutwerkman.calltreevisualizer.test.foo")))
 
         val config = MutableStateFlow(Config())
         val stepSignals = MutableSharedFlow<StepSignal>(replay = 1)
-        val events = trackingCallStacks {
-            simpleCall() // calls foo, bar, baz
-        }
+
         @OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
         val viewModel = CallTreeViewModel(
             config = config,
             stepSignals = stepSignals,
-            breakpointProgram = breakpointProgram,
+            breakpointProgram = changeSpeed(10)
+                .then(breakAfter(functionCall("com.woutwerkman.calltreevisualizer.test.foo"))),
             onConfigChange = {
                 configChangeCount++
                 config.value = it
             },
-            events = events,
+            events = trackingCallStacks {
+                simpleCall() // calls foo, bar, baz
+            },
             clock = TestClock(testScheduler.timeSource)
         )
 
