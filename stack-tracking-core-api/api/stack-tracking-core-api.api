@@ -1,3 +1,24 @@
-public abstract interface annotation class org/jetbrains/kotlin/compiler/plugin/template/SomeAnnotation : java/lang/annotation/Annotation {
+public final class com/woutwerkman/calltreevisualizer/CallTreeTrackingApisKt {
+	public static final fun stackTracked (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface annotation class com/woutwerkman/calltreevisualizer/NonTracked : java/lang/annotation/Annotation {
+}
+
+public abstract interface class com/woutwerkman/calltreevisualizer/StackTrackingContext : kotlin/coroutines/CoroutineContext$Element {
+	public static final field Companion Lcom/woutwerkman/calltreevisualizer/StackTrackingContext$Companion;
+	public fun getKey ()Lkotlin/coroutines/CoroutineContext$Key;
+	public abstract fun track (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/woutwerkman/calltreevisualizer/StackTrackingContext$Companion : kotlin/coroutines/CoroutineContext$Key {
+}
+
+public final class com/woutwerkman/calltreevisualizer/StackTrackingContext$DefaultImpls {
+	public static fun fold (Lcom/woutwerkman/calltreevisualizer/StackTrackingContext;Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
+	public static fun get (Lcom/woutwerkman/calltreevisualizer/StackTrackingContext;Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext$Element;
+	public static fun getKey (Lcom/woutwerkman/calltreevisualizer/StackTrackingContext;)Lkotlin/coroutines/CoroutineContext$Key;
+	public static fun minusKey (Lcom/woutwerkman/calltreevisualizer/StackTrackingContext;Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext;
+	public static fun plus (Lcom/woutwerkman/calltreevisualizer/StackTrackingContext;Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
 }
 

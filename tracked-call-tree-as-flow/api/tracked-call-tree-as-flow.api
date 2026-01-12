@@ -1,0 +1,46 @@
+public final class com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEvent {
+	public fun <init> (Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallTreeEventNode;Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType;)V
+	public final fun component1 ()Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallTreeEventNode;
+	public final fun component2 ()Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType;
+	public final fun getEventType ()Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType;
+	public final fun getNode ()Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallTreeEventNode;
+}
+
+public abstract class com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType {
+}
+
+public final class com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType$CallStackCancelled : com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType {
+	public static final field INSTANCE Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType$CallStackCancelled;
+}
+
+public final class com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType$CallStackPopType : com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType {
+	public static final field INSTANCE Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType$CallStackPopType;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType$CallStackPushType : com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType {
+	public static final field INSTANCE Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType$CallStackPushType;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType$CallStackThrowType : com/woutwerkman/calltreevisualizer/coroutineintegration/CallStackTrackEventType {
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun getThrowable ()Ljava/lang/Throwable;
+}
+
+public final class com/woutwerkman/calltreevisualizer/coroutineintegration/CallTreeCoroutineIntegrationKt {
+	public static final fun trackingCallStacks (Lkotlin/jvm/functions/Function3;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/woutwerkman/calltreevisualizer/coroutineintegration/CallTreeEventNode {
+	public fun <init> (ILjava/lang/String;Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallTreeEventNode;)V
+	public synthetic fun <init> (ILjava/lang/String;Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallTreeEventNode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getFunctionFqn ()Ljava/lang/String;
+	public final fun getId ()I
+	public final fun getParent ()Lcom/woutwerkman/calltreevisualizer/coroutineintegration/CallTreeEventNode;
+}
+
