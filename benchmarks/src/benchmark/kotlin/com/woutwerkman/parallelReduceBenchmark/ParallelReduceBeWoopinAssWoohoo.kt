@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.woutwerkman.parallelReduceBenchmark
 
 import kotlinx.benchmark.Benchmark
@@ -5,6 +7,7 @@ import kotlinx.benchmark.Scope
 import kotlinx.benchmark.Setup
 import kotlinx.benchmark.State
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -35,6 +38,7 @@ open class ParallelReduceBenchmark {
 // Too lazy to find the proper solution rn
 fun <T> runBlockingMultithreaded(block: suspend CoroutineScope.() -> T): T {
     val future = CompletableFuture<T>()
+    @OptIn(DelicateCoroutinesApi::class)
     GlobalScope.launch(Dispatchers.Default) { future.complete(block()) }
     return future.get()
 }
