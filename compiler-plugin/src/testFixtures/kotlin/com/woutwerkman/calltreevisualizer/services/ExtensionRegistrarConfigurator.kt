@@ -2,7 +2,7 @@ package com.woutwerkman.calltreevisualizer.services
 
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
-import com.woutwerkman.calltreevisualizer.ir.SimpleIrGenerationExtension
+import com.woutwerkman.calltreevisualizer.ir.CallTreeVisualizerIrGenerationExtension
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.model.TestModule
@@ -19,6 +19,6 @@ private class ExtensionRegistrarConfigurator(testServices: TestServices) : Envir
         module: TestModule,
         configuration: CompilerConfiguration
     ) {
-        IrGenerationExtension.registerExtension(SimpleIrGenerationExtension())
+        IrGenerationExtension.registerExtension(CallTreeVisualizerIrGenerationExtension())
     }
 }
