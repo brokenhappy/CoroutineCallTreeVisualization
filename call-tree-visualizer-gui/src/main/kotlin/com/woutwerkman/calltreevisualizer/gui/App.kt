@@ -28,23 +28,22 @@ import kotlin.time.ExperimentalTime
 
 @ExperimentalCoroutinesApi
 suspend fun main() {
-    val breakpointProgram = changeSpeed(30.eventsPerSecond)
-        .then(breakAfter(functionCall(::linearExplosion)))
-        .then(changeSpeed(30.eventsPerSecond))
-        .then(breakBefore(functionThrows(::recurse)))
-        .then(breakAfter(functionCall(::firstStructuredConcurrency)))
-        .then(changeSpeed(10.eventsPerSecond))
-        .then(breakAfter(functionCall("kotlinhax.shadowroutines.coroutineScope")))
-        .then(changeSpeed(10.eventsPerSecond))
-        .then(breakBefore(functionThrows(::baz)))
-        .then(changeSpeed(10.eventsPerSecond))
-        .then(breakBefore(functionCancels("kotlinhax.shadowroutines.awaitCancellation")))
-
     val config = MutableStateFlow(Config())
     val stepSignals = MutableSharedFlow<StepSignal>(replay = 10)
+
     runApp(
         program = { programWithAllTypes() },
-        breakpointProgram = breakpointProgram,
+        breakpointProgram = changeSpeed(30.eventsPerSecond)
+            .then(breakAfter(functionCall(::linearExplosion)))
+            .then(changeSpeed(30.eventsPerSecond))
+            .then(breakBefore(functionThrows(::recurse)))
+            .then(breakAfter(functionCall(::firstStructuredConcurrency)))
+            .then(changeSpeed(10.eventsPerSecond))
+            .then(breakAfter(functionCall("kotlinhax.shadowroutines.coroutineScope")))
+            .then(changeSpeed(10.eventsPerSecond))
+            .then(breakBefore(functionThrows(::baz)))
+            .then(changeSpeed(10.eventsPerSecond))
+            .then(breakBefore(functionCancels("kotlinhax.shadowroutines.awaitCancellation"))),
         currentConfig = config,
         onConfigChange = { config.value = it },
         stepSignals = stepSignals,
