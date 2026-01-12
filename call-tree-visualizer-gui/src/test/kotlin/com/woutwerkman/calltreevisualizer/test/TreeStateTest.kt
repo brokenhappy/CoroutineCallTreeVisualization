@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalTime::class)
+@file:OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
 
 package com.woutwerkman.calltreevisualizer.test
 
@@ -9,14 +9,19 @@ import com.woutwerkman.calltreevisualizer.owningGlobalScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.testTimeSource
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -177,7 +182,6 @@ class TreeStateTest {
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `the time spend in the program does not affect time between events`() = runTest(timeout = 2.seconds) {
         val timeTaken = testTimeSource.measureTime {
@@ -194,7 +198,6 @@ class TreeStateTest {
         assertEquals(timeTaken, 2.seconds)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `the time spend processing events does not affect time waited between events`() = runTest(timeout = 2.seconds) {
         val timeTaken = testTimeSource.measureTime {
@@ -213,6 +216,77 @@ class TreeStateTest {
             assertNull(result)
         }
         assertEquals(timeTaken, 2.seconds)
+    }
+
+    @Test
+    fun `speed zero blocks execution indefinitely via awaitCancellation`() = runTest(timeout = 2.seconds) {
+        val viewModel = CallTreeViewModel(
+            config = flowOf(Config(speed = 0)),
+            stepSignals = flowOf(StepSignal.Resume),
+            breakpointProgram = BreakpointProgram(BreakpointSteps.Empty),
+            onConfigChange = { error("I don't think it needs to happen, but it also shouldn't matter") },
+            events = trackingCallStacks {
+                owningGlobalScope {
+                    foo()
+                }
+            },
+            clock = TestClock(testScheduler.timeSource),
+        )
+
+        race({
+            advanceUntilIdle()
+        }, {
+            viewModel.run()
+            fail("Should never reach this")
+        })
+    }
+
+    /** Because local enum classes are not supported */
+    enum class TestStateForTestBelow {
+        Paused,
+        Running,
+        Done,
+    }
+
+    @Test
+    fun `changing speed from zero to positive unblocks execution reactively`() = runTest(timeout = 2.seconds) {
+        val config = MutableStateFlow(Config(speed = 0))
+        val stepSignals = MutableSharedFlow<StepSignal>(replay = 1)
+
+        val testState = MutableStateFlow(TestStateForTestBelow.Paused)
+
+        val viewModel = CallTreeViewModel(
+            config = config,
+            stepSignals = stepSignals,
+            breakpointProgram = breakAfter(functionCall("com.woutwerkman.calltreevisualizer.test.foo")),
+            onConfigChange = { error("I don't think it needs to happen, but it also shouldn't matter") },
+            events = trackingCallStacks {
+                foo()
+                if (testState.value != TestStateForTestBelow.Running) fail("Uh oh! Program was supposed to be halted")
+                testState.value = TestStateForTestBelow.Done
+            },
+            clock = TestClock(testScheduler.timeSource)
+        )
+
+        coroutineScope {
+            launch { viewModel.run() }
+            stepSignals.emit(StepSignal.Resume)
+
+            advanceUntilIdle()
+            stepSignals.emit(StepSignal.Resume)
+            testState.value = TestStateForTestBelow.Running
+            config.value = Config(speed = 1)
+
+            assertNotNull(
+                race({
+                    advanceUntilIdle()
+                    null
+                }, {
+                    testState.first { it == TestStateForTestBelow.Done }
+                }),
+                message = "Program did not continue running after speed change",
+            )
+        }
     }
 }
 
