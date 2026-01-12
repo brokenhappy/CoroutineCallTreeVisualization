@@ -1,12 +1,18 @@
 package com.woutwerkman.calltreevisualizer.gui
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
@@ -62,22 +68,31 @@ internal fun Settings(currentConfig: Config, onConfigChange: (Config) -> Unit) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Zoom: ", style = MaterialTheme.typography.caption)
                 var textFieldState by remember(currentConfig.zoom) { mutableStateOf(currentConfig.zoom.times(100).roundToInt()) }
-                TextField(
+                BasicTextField(
                     value = textFieldState.toString(),
                     onValueChange = { newValueString ->
                         newValueString.toIntOrNull()?.also { textFieldState = it }
                     },
-                    modifier = Modifier.onKeyEvent { event ->
-                        (event.type == KeyEventType.KeyUp && event.key == Key.Enter).also {
-                            if (it) onConfigChange(currentConfig.copy(zoom = textFieldState.div(100f)))
-                        }
-                    },
-                    colors = TextFieldDefaults.textFieldColors(
-
+                    modifier = Modifier
+                        .width(40.dp)
+                        .padding(horizontal = 4.dp)
+                        .border(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .padding(2.dp)
+                        .onKeyEvent { event ->
+                            (event.type == KeyEventType.KeyUp && event.key == Key.Enter).also {
+                                if (it) onConfigChange(currentConfig.copy(zoom = textFieldState.div(100f)))
+                            }
+                        },
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colors.onSurface,
+                        fontSize = MaterialTheme.typography.caption.fontSize,
+                        textAlign = TextAlign.Center
                     ),
+                    cursorBrush = SolidColor(MaterialTheme.colors.onSurface),
+                    singleLine = true
                 )
                 Text("%", style = MaterialTheme.typography.caption)
             }
