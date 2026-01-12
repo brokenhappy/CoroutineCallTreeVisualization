@@ -1,0 +1,349 @@
+@file:OptIn(ExperimentalTime::class)
+
+package com.woutwerkman.calltreevisualizer.gui
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Explosion_dark_theme
+import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Explosion_light_theme
+import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Res
+import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
+import com.woutwerkman.calltreevisualizer.owningGlobalScope
+import kotlinx.collections.immutable.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import org.jetbrains.compose.resources.painterResource
+import java.awt.Cursor
+import kotlin.time.ExperimentalTime
+
+@Composable
+fun DebuggerControls(
+    executionControl: ExecutionControl,
+    onStep: () -> Unit,
+    onResume: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isPaused = executionControl is ExecutionControl.Paused
+    val canStep = isPaused
+    val canResume = isPaused
+
+    Row(
+        modifier = modifier
+            .padding(16.dp)
+            .background(MaterialTheme.colors.surface.copy(alpha = 0.9f), RoundedCornerShape(8.dp))
+            .border(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val stepColor = if (canStep) Color(0xFF3574F0) else Color.Gray.copy(alpha = 0.4f)
+        val resumeColor = if (canResume) Color(0xFF59A869) else Color.Gray.copy(alpha = 0.4f)
+
+        // Step Button (styled after Step Over)
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .let { if (canStep) it.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))) else it }
+                .let { if (canStep) it.clickable { onStep() } else it }
+                .padding(6.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeWidth = 2.5.dp.toPx()
+                // Curved arrow line
+                val path = Path().apply {
+                    moveTo(0f, size.height * 0.4f)
+                    cubicTo(
+                        size.width * 0.4f, size.height * 0.4f,
+                        size.width * 0.7f, size.height * 0.4f,
+                        size.width * 0.7f, size.height * 0.7f
+                    )
+                }
+                drawPath(
+                    path = path,
+                    color = stepColor,
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                )
+                // Arrow head
+                val headSize = 6.dp.toPx()
+                val headPath = Path().apply {
+                    moveTo(size.width * 0.7f - headSize / 1.5f, size.height * 0.7f - headSize / 2f)
+                    lineTo(size.width * 0.7f, size.height * 0.7f + headSize / 2f)
+                    lineTo(size.width * 0.7f + headSize / 1.5f, size.height * 0.7f - headSize / 2f)
+                }
+                drawPath(headPath, color = stepColor)
+            }
+        }
+
+        // Resume Button (styled after Resume Program)
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .let { if (canResume) it.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))) else it }
+                .let { if (canResume) it.clickable { onResume() } else it }
+                .padding(6.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val path = Path().apply {
+                    moveTo(size.width * 0.25f, size.height * 0.15f)
+                    lineTo(size.width * 0.25f, size.height * 0.85f)
+                    lineTo(size.width * 0.85f, size.height * 0.5f)
+                    close()
+                }
+                drawPath(path, color = resumeColor)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
+@Composable
+fun CallTreeUI(
+    config: Flow<Config>,
+    stepSignals: MutableSharedFlow<StepSignal>,
+    breakpointProgram: BreakpointProgram,
+    onConfigChange: (Config) -> Unit,
+    program: suspend () -> Unit
+) {
+    val viewModel = remember(program, breakpointProgram) {
+        CallTreeViewModel(
+            config = config,
+            stepSignals = stepSignals,
+            breakpointProgram = breakpointProgram,
+            onConfigChange = onConfigChange,
+            events = trackingCallStacks {
+                owningGlobalScope {
+                    program()
+                }
+            }
+        )
+    }
+
+    val tree by viewModel.tree.collectAsState()
+    val executionControl by viewModel.executionControl.collectAsState()
+
+    LaunchedEffect(viewModel) {
+        withContext(Dispatchers.Default) {
+            viewModel.run()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        CallTreeUI(tree)
+        DebuggerControls(
+            executionControl = executionControl,
+            onStep = { stepSignals.tryEmit(StepSignal.Step) },
+            onResume = { stepSignals.tryEmit(StepSignal.Resume) },
+            modifier = Modifier.align(Alignment.TopEnd)
+        )
+    }
+}
+
+@Composable
+fun CallTreeUI(programState: CallTree) {
+    @Composable
+    fun DrawNode(node: CallTree.Node) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                val lastNodeWithChildren = generateSequence(node) { it.childIds.singleOrNull()?.let { programState.nodes[it] } }
+                    .last()
+                val children = lastNodeWithChildren.childIds.map { programState.nodes[it]!! }
+
+                if (children.isNotEmpty()) {
+                    var childCoordinates by remember(children) { mutableStateOf(persistentMapOf<Int, androidx.compose.ui.layout.LayoutCoordinates>()) }
+                    Column(
+                        modifier = Modifier.width(IntrinsicSize.Max),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        var columnCoordinates by remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.Bottom,
+                        ) {
+                            children.forEach { child ->
+                                Box(
+                                    modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
+                                        childCoordinates = childCoordinates.put(child.id, layoutCoordinates)
+                                    }
+                                ) {
+                                    DrawNode(child)
+                                }
+                            }
+                        }
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(24.dp).onGloballyPositioned { columnCoordinates = it }
+                        ) {
+                            Canvas(modifier = Modifier.matchParentSize()) {
+                                val colCoords = columnCoordinates
+                                if (colCoords == null || !colCoords.isAttached) return@Canvas
+
+                                val color = Color.Gray.copy(alpha = 0.5f)
+                                val strokeWidth = 2.dp.toPx()
+                                val midY = size.height / 2
+
+                                // Vertical line to parent
+                                drawLine(
+                                    color = color,
+                                    start = Offset(size.width / 2, size.height),
+                                    end = Offset(size.width / 2, midY),
+                                    strokeWidth = strokeWidth
+                                )
+
+                                val currentChildXPositions = children.mapNotNull { child ->
+                                    val coords = childCoordinates[child.id]
+                                    if (coords != null && coords.isAttached) {
+                                        child.id to colCoords.localPositionOf(coords, Offset.Zero).x + coords.size.width / 2f
+                                    } else null
+                                }.toMap()
+
+                                if (currentChildXPositions.isNotEmpty()) {
+                                    val minX = currentChildXPositions.values.minOrNull() ?: 0f
+                                    val maxX = currentChildXPositions.values.maxOrNull() ?: 0f
+
+                                    // Horizontal line connecting all children
+                                    if (children.size > 1 && currentChildXPositions.size == children.size) {
+                                        drawLine(
+                                            color = color,
+                                            start = Offset(minX, midY),
+                                            end = Offset(maxX, midY),
+                                            strokeWidth = strokeWidth
+                                        )
+                                    }
+
+                                    // Vertical lines to each child
+                                    children.forEach { child ->
+                                        currentChildXPositions[child.id]?.let { x ->
+                                            drawLine(
+                                                color = color,
+                                                start = Offset(x, midY),
+                                                end = Offset(x, 0f),
+                                                strokeWidth = strokeWidth
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // No children, nothing to draw above this node
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(1.5.dp, MaterialTheme.colors.primary.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colors.surface),
+                verticalArrangement = Arrangement.Bottom,
+            ) {
+                generateSequence(node) { it.childIds.singleOrNull()?.let { programState.nodes[it] } }
+                    .toList()
+                    .asReversed()
+                    .forEach { node ->
+                        if (node.childIds.size == 1) {
+                            Box(modifier = Modifier.background(MaterialTheme.colors.onSurface.copy(alpha = 0.1f)).size(140.dp, 1.dp))
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                                .width(132.dp)
+                                .height(24.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            when (node.type) {
+                                is CallTree.Node.Type.Normal -> Text(
+                                    text = node.type.name.substringAfterLast("."),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.body1,
+                                    color = MaterialTheme.colors.onSurface
+                                )
+                                is CallTree.Node.Type.ThrewException if node.type.wasCancellation -> FullSizeDiagonalRedCross()
+                                is CallTree.Node.Type.ThrewException -> Explosion()
+                            }
+                        }
+                    }
+            }
+        }
+    }
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        for (root in programState.roots) {
+            DrawNode(programState.nodes[root]!!)
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+    }
+}
+
+@Composable
+private fun Explosion() {
+    val drawable = if (MaterialTheme.colors.isLight) {
+        Res.drawable.Explosion_light_theme
+    } else {
+        Res.drawable.Explosion_dark_theme
+    }
+    Image(
+        painter = painterResource(drawable),
+        contentDescription = "Explosion",
+        modifier = Modifier.fillMaxSize(),
+    )
+}
+
+@Composable
+private fun FullSizeDiagonalRedCross() {
+    val color = MaterialTheme.colors.error
+    Canvas(modifier = Modifier.fillMaxSize().padding(4.dp)) {
+        drawLine(
+            color = color,
+            start = Offset(0f, 0f),
+            end = Offset(size.width, size.height),
+            strokeWidth = 3f,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = color,
+            start = Offset(size.width, 0f),
+            end = Offset(0f, size.height),
+            strokeWidth = 3f,
+            cap = StrokeCap.Round
+        )
+    }
+}
+
+
