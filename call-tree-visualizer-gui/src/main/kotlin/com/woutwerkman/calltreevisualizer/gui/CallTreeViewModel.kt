@@ -78,7 +78,6 @@ class CallTreeViewModel(
                     _executionControl.value = ExecutionControl.Paused
                 }
 
-                // TODO: Cover removing this wait
                 _executionControl.waitForResume(lastEmission, config, clock)
                 lastEmission = clock.now()
             }
