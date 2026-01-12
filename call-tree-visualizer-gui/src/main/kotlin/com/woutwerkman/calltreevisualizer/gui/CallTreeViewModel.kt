@@ -7,6 +7,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -42,7 +43,7 @@ class CallTreeViewModel(
         var lastEmission = clock.now()
 
         coroutineScope {
-            launch {
+            val stepSignalCollectorJob = launch {
                 stepSignals.collect { signal ->
                     _executionControl.value = when (signal) {
                         StepSignal.Step -> ExecutionControl.WaitingForSingleStep
@@ -81,6 +82,7 @@ class CallTreeViewModel(
                 _executionControl.waitForResume(lastEmission, config, clock)
                 lastEmission = clock.now()
             }
+            stepSignalCollectorJob.cancelAndJoin()
         }
     }
 }
