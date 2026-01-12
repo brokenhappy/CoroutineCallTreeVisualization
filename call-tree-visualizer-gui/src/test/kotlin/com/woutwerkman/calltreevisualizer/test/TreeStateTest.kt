@@ -331,30 +331,27 @@ private suspend fun TestScope.treeAfterDebuggerProgramOrNullIfProgramFinished(
         clock = TestClock(testScheduler.timeSource),
     )
 
-    race(
-        {
-            viewModel.run()
-            null /* Program finished */
-        },
-        {
-            for (interaction in interactions) {
-                when (interaction) {
-                    Interaction.Step -> stepSignals.emit(StepSignal.Step)
-                    Interaction.Resume -> stepSignals.emit(StepSignal.Resume)
-                }
-
-                // Wait for the interaction to be processed and for the state to settle
-                if (interaction == Interaction.Step) {
-                    viewModel.executionControl.first { it is ExecutionControl.WaitingForSingleStep }
-                } else {
-                    viewModel.executionControl.first { it !is ExecutionControl.Paused }
-                }
-                viewModel.executionControl.first { it is ExecutionControl.Paused }
+    race({
+        viewModel.run()
+        null /* Program finished */
+    }, {
+        for (interaction in interactions) {
+            when (interaction) {
+                Interaction.Step -> stepSignals.emit(StepSignal.Step)
+                Interaction.Resume -> stepSignals.emit(StepSignal.Resume)
             }
 
-            viewModel.tree.value
-        },
-    )
+            // Wait for the interaction to be processed and for the state to settle
+            if (interaction == Interaction.Step) {
+                viewModel.executionControl.first { it is ExecutionControl.WaitingForSingleStep }
+            } else {
+                viewModel.executionControl.first { it !is ExecutionControl.Paused }
+            }
+            viewModel.executionControl.first { it is ExecutionControl.Paused }
+        }
+
+        viewModel.tree.value
+    })
 }
 
 suspend fun <T> race(vararg tasks: suspend CoroutineScope.() -> T) =
