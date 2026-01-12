@@ -71,8 +71,6 @@ sealed class ExecutionControl {
     data object WaitingForSingleStep : ExecutionControl()
 }
 
-fun ExecutionControl.isRunning(): Boolean = this is ExecutionControl.Running
-
 data class AutomatonResult(
     val nextAutomaton: BreakpointAutomaton,
     val shouldPauseBefore: Boolean,
