@@ -147,8 +147,8 @@ fun progressAutomaton(
 
     return AutomatonResult(
         nextAutomaton = BreakpointAutomaton(afterResult.remainingSteps),
-        shouldPauseBefore = beforeResult.matched, // TODO: Cover = true and = false
-        shouldPauseAfter = afterResult.matched, // TODO: Cover = true and = false
+        shouldPauseBefore = beforeResult.matched,
+        shouldPauseAfter = afterResult.matched,
         newSpeed = if (afterResult.newSpeed != currentSpeed) afterResult.newSpeed else null
     )
 }
