@@ -8,6 +8,7 @@ import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.fail
 
 class CallTreeTest {
     @Test
@@ -31,6 +32,73 @@ class CallTreeTest {
         assertEquals(1, tree.nodes[1]?.childIds?.size)
         assertEquals(2, tree.nodes[1]?.childIds?.get(0))
         assertEquals("child", (tree.nodes[2]?.type as? CallTree.Node.Type.Normal)?.name)
+    }
+
+    @Test
+    fun `cancelled node is marked as ThrewException with wasCancellation true`() {
+        val tree = CallStack.Empty
+            .afterPushing("root")
+            .afterPushing("cancelling")
+            .afterCancelling()
+            .tree
+
+        val cancelledNode = tree.nodes[2]!!
+        val type = cancelledNode.type as CallTree.Node.Type.ThrewException
+        assertEquals(true, type.wasCancellation)
+    }
+
+    @Test
+    fun `pushing a child node removes existing exception child nodes`() {
+        val tree = CallStack.Empty
+            .afterPushing("root")
+            .afterPushing("throwing")
+            .afterThrowing()
+            // Now "throwing" is a ThrewException node under "root" with id 2
+            .afterPushing("newChild")
+            .tree
+
+        assertEquals(
+            listOf(
+                "root",
+                "newChild"
+            ),
+            generateSequence(tree.roots.map { tree.nodes[it]!! }) { nodes ->
+                when (nodes.size) {
+                    0 -> null
+                    1 -> nodes.single().childIds.map { tree.nodes[it]!! }
+                    else -> fail("Tree is expected to be a stack, instead got a fork: $nodes")
+                }
+            }
+                .mapNotNull { it.firstOrNull()?.type }
+                .map { (it as? CallTree.Node.Type.Normal) ?: fail("Expected only normal nodes, got $it") }
+                .map { it.name }
+                .toList(),
+        )
+    }
+
+    @Test
+    fun `pushing a child node does NOT remove existing normal child nodes`() {
+        val root = CallTreeEventNode(1, "root", null)
+
+        val tree = CallTree.Empty
+            .after(pushing(root))
+            .after(pushing("child1").on(root))
+            .after(pushing("child2").on(root))
+
+        val rootNodeAfter = tree.nodes[1]!!
+        assertEquals(2, rootNodeAfter.childIds.size)
+    }
+
+    @Test
+    fun `popping a root node removes it and all its children`() {
+        val tree = CallStack.Empty
+            .afterPushing("root")
+            .afterPushing("child")
+            .afterPopping() // pop child
+            .afterPopping() // pop root
+            .tree
+
+        assertEquals(tree, CallTree.Empty)
     }
 
     @Test
@@ -102,10 +170,20 @@ private fun CallStack.afterThrowing(throwable: Throwable = IgnoredException()): 
     )
 }
 
+private fun CallStack.afterCancelling(): CallStack {
+    val leaf = leafNode()!!
+    return CallStack(
+        tree.after(CallStackTrackEvent(leaf, CallStackTrackEventType.CallStackCancelled)),
+        eventNodes.remove(leaf.id, leaf),
+    )
+}
+
 private data class PushingDsl(val fqn: String)
 private fun pushing(fqn: String): PushingDsl = PushingDsl(fqn)
 private fun PushingDsl.on(node: CallTreeEventNode?): CallStackTrackEvent =
     CallStackTrackEvent(CallTreeEventNode((node?.id ?: 0) + 1, fqn, node), CallStackTrackEventType.CallStackPushType)
+private fun pushing(node: CallTreeEventNode): CallStackTrackEvent =
+    CallStackTrackEvent(node, CallStackTrackEventType.CallStackPushType)
 
 private fun popping(leaf: CallTreeEventNode): CallStackTrackEvent =
     CallStackTrackEvent(leaf, CallStackTrackEventType.CallStackPopType)
