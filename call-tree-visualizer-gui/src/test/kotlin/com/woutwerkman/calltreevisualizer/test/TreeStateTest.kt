@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.woutwerkman.calltreevisualizer.test
 
 import com.woutwerkman.calltreevisualizer.gui.*
@@ -17,66 +19,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlin.time.TimeSource
 
-@OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
 class TreeStateTest {
-
-    private class TestClock(private val timeSource: TimeSource.WithComparableMarks) : Clock {
-        private val startMark = timeSource.markNow()
-        override fun now() =
-            Instant.fromEpochMilliseconds((timeSource.markNow() - startMark).inWholeMilliseconds)
-    }
-
-    private sealed interface Interaction {
-        data object Step : Interaction
-        data object Resume : Interaction
-    }
-
-    private suspend fun TestScope.treeAfterDebuggerProgramOrNullIfProgramFinished(
-        program: suspend () -> Unit,
-        debuggerProgram: BreakpointProgram,
-        interactions: List<Interaction>
-    ): CallTree? = coroutineScope {
-        val config = MutableStateFlow(Config())
-        val stepSignals = MutableSharedFlow<StepSignal>(replay = 1)
-        val viewModel = CallTreeViewModel(
-            config = config,
-            stepSignals = stepSignals,
-            breakpointProgram = debuggerProgram,
-            onConfigChange = { config.value = it },
-            events = trackingCallStacks {
-                owningGlobalScope {
-                    program()
-                }
-            },
-            clock = TestClock(testScheduler.timeSource)
-        )
-
-        race(
-            {
-                viewModel.run()
-                null /* Program finished */
-            },
-            {
-                for (interaction in interactions) {
-                    when (interaction) {
-                        Interaction.Step -> stepSignals.emit(StepSignal.Step)
-                        Interaction.Resume -> stepSignals.emit(StepSignal.Resume)
-                    }
-
-                    // Wait for the interaction to be processed and for the state to settle
-                    if (interaction == Interaction.Step) {
-                        viewModel.executionControl.first { it is ExecutionControl.WaitingForSingleStep }
-                    } else {
-                        viewModel.executionControl.first { it !is ExecutionControl.Paused }
-                    }
-                    viewModel.executionControl.first { it is ExecutionControl.Paused }
-                }
-
-                viewModel.tree.value
-            },
-        )
-    }
-
     @Test
     fun `breakBefore plus step equals breakAfter`() = runTest(timeout = 2.seconds) {
         val fqn = "com.woutwerkman.calltreevisualizer.test.foo"
@@ -203,6 +146,7 @@ class TreeStateTest {
         val events = trackingCallStacks {
             simpleCall() // calls foo, bar, baz
         }
+        @OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
         val viewModel = CallTreeViewModel(
             config = config,
             stepSignals = stepSignals,
@@ -229,6 +173,63 @@ class TreeStateTest {
             job.cancelAndJoin()
         }
     }
+}
+
+private class TestClock(private val timeSource: TimeSource.WithComparableMarks) : Clock {
+    private val startMark = timeSource.markNow()
+    override fun now() =
+        Instant.fromEpochMilliseconds((timeSource.markNow() - startMark).inWholeMilliseconds)
+}
+
+private sealed interface Interaction {
+    data object Step : Interaction
+    data object Resume : Interaction
+}
+
+private suspend fun TestScope.treeAfterDebuggerProgramOrNullIfProgramFinished(
+    program: suspend () -> Unit,
+    debuggerProgram: BreakpointProgram,
+    interactions: List<Interaction>
+): CallTree? = coroutineScope {
+    val config = MutableStateFlow(Config())
+    val stepSignals = MutableSharedFlow<StepSignal>(replay = 1)
+    val viewModel = CallTreeViewModel(
+        config = config,
+        stepSignals = stepSignals,
+        breakpointProgram = debuggerProgram,
+        onConfigChange = { config.value = it },
+        events = trackingCallStacks {
+            owningGlobalScope {
+                program()
+            }
+        },
+        clock = TestClock(testScheduler.timeSource)
+    )
+
+    race(
+        {
+            viewModel.run()
+            null /* Program finished */
+        },
+        {
+            for (interaction in interactions) {
+                when (interaction) {
+                    Interaction.Step -> stepSignals.emit(StepSignal.Step)
+                    Interaction.Resume -> stepSignals.emit(StepSignal.Resume)
+                }
+
+                // Wait for the interaction to be processed and for the state to settle
+                if (interaction == Interaction.Step) {
+                    viewModel.executionControl.first { it is ExecutionControl.WaitingForSingleStep }
+                } else {
+                    viewModel.executionControl.first { it !is ExecutionControl.Paused }
+                }
+                viewModel.executionControl.first { it is ExecutionControl.Paused }
+            }
+
+            viewModel.tree.value
+        },
+    )
 }
 
 suspend fun <T> race(vararg tasks: suspend CoroutineScope.() -> T) =
