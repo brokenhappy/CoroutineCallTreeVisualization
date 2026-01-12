@@ -56,7 +56,6 @@ class CallTreeViewModel(
                 val result = progressAutomaton(automaton, event, currentConfig.speed)
                 automaton = result.nextAutomaton
 
-                // TODO: Cover condition = false
                 if (result.shouldPauseBefore) {
                     _executionControl.value = ExecutionControl.Paused
                     // TODO: Cover removing this wait
