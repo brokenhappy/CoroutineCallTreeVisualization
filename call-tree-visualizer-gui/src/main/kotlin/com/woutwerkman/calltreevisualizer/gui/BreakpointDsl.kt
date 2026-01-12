@@ -90,7 +90,6 @@ private data class MatchResult(
 
 private tailrec fun consumeSpeedChanges(steps: BreakpointSteps, currentSpeed: Int?): Pair<BreakpointSteps, Int?> =
     when (steps) {
-        // TODO: Cover removing this (keeping just else)
         is BreakpointSteps.SetSpeed -> consumeSpeedChanges(steps.next, steps.eventsPerSecond)
         else -> steps to currentSpeed
     }

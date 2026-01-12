@@ -65,4 +65,16 @@ class BreakpointAutomatonTest {
         assertFalse(nextResult.shouldPauseBefore)
         assertFalse(nextResult.shouldPauseAfter)
     }
+
+    @Test
+    fun `multiple consecutive changeSpeed calls consume all speed changes`() {
+        val program = changeSpeed(10).then(changeSpeed(20)).then(changeSpeed(30)).then(breakBefore(functionCall("foo")))
+        val (automaton, initialSpeed) = createAutomaton(program)
+
+        assertEquals(30, initialSpeed, "Should consume all SetSpeed steps and return the last speed")
+
+        val event = stubEvent("foo")
+        val result = progressAutomaton(automaton, event, currentSpeed = initialSpeed)
+        assertTrue(result.shouldPauseBefore)
+    }
 }
