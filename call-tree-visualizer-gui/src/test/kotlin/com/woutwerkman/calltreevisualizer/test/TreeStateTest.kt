@@ -143,7 +143,6 @@ class TreeStateTest {
         val config = MutableStateFlow(Config())
         val stepSignals = MutableSharedFlow<StepSignal>(replay = 1)
 
-        @OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
         val viewModel = CallTreeViewModel(
             config = config,
             stepSignals = stepSignals,
