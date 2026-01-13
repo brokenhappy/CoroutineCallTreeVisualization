@@ -7,10 +7,16 @@ plugins {
 }
 
 idea {
-    module.generatedSourceDirs.add(projectDir.resolve("src/test/kotlin"))
+    module.generatedSourceDirs.add(projectDir.resolve("test-gen"))
 }
 
 val coreApiRuntimeClasspath: Configuration by configurations.creating { isTransitive = false }
+
+sourceSets {
+    test {
+        java.srcDir("test-gen")
+    }
+}
 
 dependencies {
     compileOnly(libs.kotlin.compiler)
@@ -70,7 +76,7 @@ val generateTests by tasks.registering(JavaExec::class) {
     inputs.dir(layout.projectDirectory.dir("src/test/resources"))
         .withPropertyName("testData")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.dir(layout.projectDirectory.dir("src/test/kotlin"))
+    outputs.dir(layout.projectDirectory.dir("test-gen"))
         .withPropertyName("generatedTests")
 
     classpath = sourceSets.testFixtures.get().runtimeClasspath
