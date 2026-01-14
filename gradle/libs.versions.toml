@@ -18,7 +18,6 @@ buildconfig = "5.6.5"
 
 # https://github.com/JetBrains/compose-multiplatform
 compose = "1.10.0"
-compose-plugin = "1.8.2"
 
 # https://github.com/vanniktech/gradle-maven-publish-plugin
 maven-publish = "0.31.0"
@@ -51,7 +50,7 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "kotlin-binaryCompatibilityValidator"}
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig"}
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-compose-gradle = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+kotlin-compose-gradle = { id = "org.jetbrains.compose", version.ref = "compose" }
 
 gradle-java-test-fixtures = { id = "java-test-fixtures" }
 gradle-idea = { id = "idea" }
