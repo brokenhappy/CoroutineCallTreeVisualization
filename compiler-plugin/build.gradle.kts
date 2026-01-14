@@ -100,7 +100,11 @@ fun Test.setLibraryProperty(propName: String, jarName: String) {
 
 
 configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
-    coordinates(rootProject.group.toString(), "compiler-plugin", rootProject.version.toString())
+    coordinates(rootProject.group.toString(), "compiler-plugin", "${
+        libs.versions.calltreevisualizer.release.target.get()
+    }-${
+        libs.versions.kotlin.release.target.get()
+    }")
     pom {
         name.set("Coroutine Call Tree Visualization - Compiler Plugin")
         description.set("Kotlin compiler plugin for instrumenting suspend functions to enable call tree visualization")

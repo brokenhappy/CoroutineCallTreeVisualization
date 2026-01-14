@@ -7,9 +7,6 @@ plugins {
 }
 
 allprojects {
-    group = "com.woutwerkman.calltreevisualizer"
-    version = "0.0.1-2.2.20"
-
     repositories {
         mavenCentral()
     }

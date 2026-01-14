@@ -8,16 +8,25 @@ plugins {
 dependencies {
     compileOnly(libs.kotlin.gradle.plugin.api)
     testImplementation(libs.kotlin.test.junit5)
+    testImplementation(libs.kotlin.gradle.plugin.api)
+    testImplementation(gradleTestKit())
+    testRuntimeOnly(libs.kotlin.gradle.plugin.api)
+    testRuntimeOnly(kotlin("gradle-plugin"))
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 buildConfig {
-    packageName(project.group.toString())
+    val groupName = "com.woutwerkman.calltreevisualizer"
+    packageName(groupName)
 
-    buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"${rootProject.group}\"")
+    buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"$groupName\"")
 
     buildConfigField("String", "KOTLIN_PLUGIN_GROUP", "\"${libs.plugins.calltreevisualizer.compilerPlugin.get().pluginId.substringBeforeLast(".")}\"")
     buildConfigField("String", "KOTLIN_PLUGIN_NAME", "\"compiler-plugin\"") // Artifact ID is not in PluginDependency
-    buildConfigField("String", "KOTLIN_PLUGIN_VERSION", "\"${libs.plugins.calltreevisualizer.compilerPlugin.get().version.requiredVersion}\"")
+    buildConfigField("String", "KOTLIN_PLUGIN_VERSION", "\"${libs.versions.calltreevisualizer.release.target.get()}\"")
 
     buildConfigField(
         type = "String",

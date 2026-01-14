@@ -48,10 +48,8 @@ kotlin {
     applyDefaultHierarchyTemplate()
 }
 
-version = "0.0.1"
-
 configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
-    coordinates(rootProject.group.toString(), "stack-tracking-core-api", version.toString())
+    coordinates(rootProject.group.toString(), "stack-tracking-core-api", libs.versions.calltreevisualizer.release.target.get())
     pom {
         name.set("Coroutine Call Tree Visualization - Core API")
         description.set("Core API and annotations for coroutine call tree tracking")

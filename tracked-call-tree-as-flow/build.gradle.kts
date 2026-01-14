@@ -51,10 +51,8 @@ kotlin {
     applyDefaultHierarchyTemplate()
 }
 
-version = "0.0.1"
-
 configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
-    coordinates(rootProject.group.toString(), "tracked-call-tree-as-flow", version.toString())
+    coordinates(rootProject.group.toString(), "tracked-call-tree-as-flow", libs.versions.calltreevisualizer.release.target.get())
     pom {
         name.set("Coroutine Call Tree Visualization - Tracked Call Tree as Flow")
         description.set("Flow-based integration for capturing and tracking coroutine call trees")

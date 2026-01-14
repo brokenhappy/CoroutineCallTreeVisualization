@@ -19,9 +19,6 @@ kotlin {
 }
 
 
-group = "com.woutwerkman"
-version = "0.0.1"
-
 repositories {
     mavenCentral()
 }

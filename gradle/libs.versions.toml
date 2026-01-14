@@ -24,6 +24,10 @@ maven-publish = "0.31.0"
 calltreevisualizer = "0.0.1"
 calltreevisualizer-plugin = "0.0.1-2.2.20"
 
+# Release versions
+kotlin-release-target = "2.2.20"
+calltreevisualizer-release-target = "0.0.2"
+
 [libraries]
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
