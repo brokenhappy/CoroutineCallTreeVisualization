@@ -26,9 +26,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Explosion_dark_theme
-import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Explosion_light_theme
-import com.woutwerkman.calltreevisualizer.call_tree_visualizer_gui.generated.resources.Res
+import coroutinecalltreevisualization.call_tree_visualizer_gui.generated.resources.Explosion_dark_theme
+import coroutinecalltreevisualization.call_tree_visualizer_gui.generated.resources.Explosion_light_theme
+import coroutinecalltreevisualization.call_tree_visualizer_gui.generated.resources.Res
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
 import com.woutwerkman.calltreevisualizer.owningGlobalScope
 import kotlinx.collections.immutable.*
