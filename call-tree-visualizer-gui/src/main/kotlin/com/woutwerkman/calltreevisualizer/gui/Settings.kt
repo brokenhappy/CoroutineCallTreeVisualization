@@ -1,5 +1,6 @@
 package com.woutwerkman.calltreevisualizer.gui
 
+import com.woutwerkman.calltreevisualizer.gui.EventsPerSecond.Companion.eventsPerSecond
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,10 +15,26 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.woutwerkman.calltreevisualizer.gui.EventsPerSecond.Companion.eventsPerSecond
 import kotlin.math.roundToInt
 
+@JvmInline
+value class EventsPerSecond private constructor(private val value: Int) : Comparable<EventsPerSecond> {
+    init {
+        require(value >= 0) { "EventsPerSecond must be non-negative, got $value" }
+    }
+
+    override fun compareTo(other: EventsPerSecond): Int = value.compareTo(other.value)
+
+    fun toInt(): Int = value
+
+    companion object {
+        val Int.eventsPerSecond: EventsPerSecond get() = EventsPerSecond(this)
+    }
+}
+
 data class Config(
-    val speed: Int? = DefaultSpeed,
+    val speed: EventsPerSecond? = DefaultSpeed,
     val zoom: Float = 1f,
     val themeMode: ThemeMode = ThemeMode.System,
 )
@@ -26,7 +43,7 @@ enum class ThemeMode {
     System, Light, Dark
 }
 
-private const val DefaultSpeed = 3
+private val DefaultSpeed = 3.eventsPerSecond
 
 @Composable
 internal fun Settings(currentConfig: Config, onConfigChange: (Config) -> Unit) {
@@ -54,12 +71,12 @@ internal fun Settings(currentConfig: Config, onConfigChange: (Config) -> Unit) {
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            Text("Events per second: ${currentConfig.speed ?: "-"}", style = MaterialTheme.typography.caption)
+            Text("Events per second: ${currentConfig.speed?.toInt() ?: "-"}", style = MaterialTheme.typography.caption)
             Slider(
-                value = (currentConfig.speed ?: DefaultSpeed).toFloat(),
+                value = (currentConfig.speed ?: DefaultSpeed).toInt().toFloat(),
                 enabled = currentConfig.speed != null,
                 valueRange = 0.0f..500.0f,
-                onValueChange = { onConfigChange(currentConfig.copy(speed = it.roundToInt())) },
+                onValueChange = { onConfigChange(currentConfig.copy(speed = it.roundToInt().eventsPerSecond)) },
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colors.primary,
                     activeTrackColor = MaterialTheme.colors.primary

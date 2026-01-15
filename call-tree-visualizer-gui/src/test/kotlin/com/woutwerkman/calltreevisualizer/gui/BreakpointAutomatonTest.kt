@@ -1,5 +1,6 @@
 package com.woutwerkman.calltreevisualizer.gui
 
+import com.woutwerkman.calltreevisualizer.gui.EventsPerSecond.Companion.eventsPerSecond
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEventType
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallTreeEventNode
@@ -52,10 +53,10 @@ class BreakpointAutomatonTest {
 
     @Test
     fun `changeSpeed sets initial speed and only pauses at specified breakpoint`() {
-        val program = changeSpeed(10).then(breakBefore(functionCall("foo")))
+        val program = changeSpeed(10.eventsPerSecond).then(breakBefore(functionCall("foo")))
         val (automaton, initialSpeed) = createAutomaton(program)
 
-        assertEquals(10, initialSpeed)
+        assertEquals(10.eventsPerSecond, initialSpeed)
 
         val event = stubEvent("foo")
         val result = progressAutomaton(automaton, event, currentSpeed = initialSpeed)
@@ -68,10 +69,10 @@ class BreakpointAutomatonTest {
 
     @Test
     fun `multiple consecutive changeSpeed calls consume all speed changes`() {
-        val program = changeSpeed(10).then(changeSpeed(20)).then(changeSpeed(30)).then(breakBefore(functionCall("foo")))
+        val program = changeSpeed(10.eventsPerSecond).then(changeSpeed(20.eventsPerSecond)).then(changeSpeed(30.eventsPerSecond)).then(breakBefore(functionCall("foo")))
         val (automaton, initialSpeed) = createAutomaton(program)
 
-        assertEquals(30, initialSpeed, "Should consume all SetSpeed steps and return the last speed")
+        assertEquals(30.eventsPerSecond, initialSpeed, "Should consume all SetSpeed steps and return the last speed")
 
         val event = stubEvent("foo")
         val result = progressAutomaton(automaton, event, currentSpeed = initialSpeed)

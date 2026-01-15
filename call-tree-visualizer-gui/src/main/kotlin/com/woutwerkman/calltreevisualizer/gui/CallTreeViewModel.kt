@@ -3,6 +3,7 @@
 package com.woutwerkman.calltreevisualizer.gui
 
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
+import com.woutwerkman.calltreevisualizer.gui.EventsPerSecond.Companion.eventsPerSecond
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
@@ -97,10 +98,10 @@ private suspend fun Flow<ExecutionControl>.waitForResume(
                 ExecutionControl.WaitingForSingleStep,
                 ExecutionControl.Running -> {
                     // Apply rate limiting if speed is set
-                    speed?.let { eventsPerSecond ->
-                        if (eventsPerSecond > 0) {
+                    speed?.let {
+                        if (speed > 0.eventsPerSecond) {
                             val timeSinceLastElement = clock.now() - lastProcessedAt
-                            val delayTime = 1.seconds / eventsPerSecond - timeSinceLastElement
+                            val delayTime = 1.seconds / speed.toInt() - timeSinceLastElement
                             if (delayTime.isPositive()) delay(delayTime)
                         } else {
                             awaitCancellation()

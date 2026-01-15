@@ -2,6 +2,7 @@
 
 package com.woutwerkman.calltreevisualizer.gui
 
+import com.woutwerkman.calltreevisualizer.gui.EventsPerSecond.Companion.eventsPerSecond
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

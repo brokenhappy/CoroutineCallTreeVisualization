@@ -37,7 +37,7 @@ fun functionCancels(function: KFunction<Unit>) = FunctionCancelsMatcher(function
 
 sealed class BreakpointSteps {
     data object Empty : BreakpointSteps()
-    data class SetSpeed(val eventsPerSecond: Int, val next: BreakpointSteps) : BreakpointSteps()
+    data class SetSpeed(val newSpeed: EventsPerSecond, val next: BreakpointSteps) : BreakpointSteps()
     data class BreakBefore(val matcher: BreakpointEventMatcher, val next: BreakpointSteps) : BreakpointSteps()
     data class BreakAfter(val matcher: BreakpointEventMatcher, val next: BreakpointSteps) : BreakpointSteps()
 }
@@ -54,8 +54,7 @@ data class BreakpointProgram(val steps: BreakpointSteps)
 fun BreakpointProgram.then(program: BreakpointProgram): BreakpointProgram =
     BreakpointProgram(steps.append(program.steps))
 
-fun changeSpeed(eventsPerSecond: Int) = BreakpointProgram(BreakpointSteps.SetSpeed(eventsPerSecond, BreakpointSteps.Empty))
-val Int.eventsPerSecond get() = this
+fun changeSpeed(newSpeed: EventsPerSecond) = BreakpointProgram(BreakpointSteps.SetSpeed(newSpeed, BreakpointSteps.Empty))
 
 fun breakBefore(matcher: BreakpointEventMatcher) = BreakpointProgram(BreakpointSteps.BreakBefore(matcher, BreakpointSteps.Empty))
 fun breakAfter(matcher: BreakpointEventMatcher) = BreakpointProgram(BreakpointSteps.BreakAfter(matcher, BreakpointSteps.Empty))
@@ -75,27 +74,27 @@ data class AutomatonResult(
     val nextAutomaton: BreakpointAutomaton,
     val shouldPauseBefore: Boolean,
     val shouldPauseAfter: Boolean,
-    val newSpeed: Int?
+    val newSpeed: EventsPerSecond?
 )
 
 data class BreakpointAutomaton(val steps: BreakpointSteps)
 
 private data class MatchResult(
     val remainingSteps: BreakpointSteps,
-    val newSpeed: Int?,
+    val newSpeed: EventsPerSecond?,
     val matched: Boolean
 )
 
-private tailrec fun consumeSpeedChanges(steps: BreakpointSteps, currentSpeed: Int?): Pair<BreakpointSteps, Int?> =
+private tailrec fun consumeSpeedChanges(steps: BreakpointSteps, currentSpeed: EventsPerSecond?): Pair<BreakpointSteps, EventsPerSecond?> =
     when (steps) {
-        is BreakpointSteps.SetSpeed -> consumeSpeedChanges(steps.next, steps.eventsPerSecond)
+        is BreakpointSteps.SetSpeed -> consumeSpeedChanges(steps.next, steps.newSpeed)
         else -> steps to currentSpeed
     }
 
 private fun tryMatchBreakpointBefore(
     steps: BreakpointSteps,
     event: CallStackTrackEvent,
-    currentSpeed: Int?
+    currentSpeed: EventsPerSecond?
 ): MatchResult = when (steps) {
     BreakpointSteps.Empty -> MatchResult(steps, currentSpeed, matched = false)
     is BreakpointSteps.SetSpeed -> {
@@ -116,7 +115,7 @@ private fun tryMatchBreakpointBefore(
 private fun tryMatchBreakpointAfter(
     steps: BreakpointSteps,
     event: CallStackTrackEvent,
-    currentSpeed: Int?
+    currentSpeed: EventsPerSecond?
 ): MatchResult = when (steps) {
     BreakpointSteps.Empty -> MatchResult(steps, currentSpeed, matched = false)
     is BreakpointSteps.SetSpeed -> {
@@ -137,7 +136,7 @@ private fun tryMatchBreakpointAfter(
 fun progressAutomaton(
     automaton: BreakpointAutomaton,
     event: CallStackTrackEvent,
-    currentSpeed: Int?
+    currentSpeed: EventsPerSecond?
 ): AutomatonResult {
     val beforeResult = tryMatchBreakpointBefore(automaton.steps, event, currentSpeed)
 
@@ -151,7 +150,7 @@ fun progressAutomaton(
     )
 }
 
-fun createAutomaton(program: BreakpointProgram): Pair<BreakpointAutomaton, Int?> {
+fun createAutomaton(program: BreakpointProgram): Pair<BreakpointAutomaton, EventsPerSecond?> {
     val (steps, speed) = consumeSpeedChanges(program.steps, null)
     return BreakpointAutomaton(steps) to speed
 }

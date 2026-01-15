@@ -2,6 +2,7 @@
 
 package com.woutwerkman.calltreevisualizer.test
 
+import com.woutwerkman.calltreevisualizer.gui.EventsPerSecond.Companion.eventsPerSecond
 import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import com.woutwerkman.calltreevisualizer.gui.*
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
@@ -153,7 +154,7 @@ class TreeStateTest {
         val viewModel = CallTreeViewModel(
             config = config,
             stepSignals = stepSignals,
-            breakpointProgram = changeSpeed(10)
+            breakpointProgram = changeSpeed(10.eventsPerSecond)
                 .then(breakAfter(functionCall("com.woutwerkman.calltreevisualizer.test.foo"))),
             onConfigChange = {
                 configChangeCount++
@@ -184,7 +185,7 @@ class TreeStateTest {
     fun `the time spend in the program does not affect time between events`() = runTest(timeout = 2.seconds) {
         val timeTaken = testTimeSource.measureTime {
             val result = treeAfterDebuggerProgramOrNullIfProgramFinished(
-                debuggerProgram = changeSpeed(1)
+                debuggerProgram = changeSpeed(1.eventsPerSecond)
                     .then(breakAfter(functionCall("function that never gets called"))),
                 interactions = listOf(Interaction.Resume),
                 program = {
@@ -200,7 +201,7 @@ class TreeStateTest {
     fun `the time spend processing events does not affect time waited between events`() = runTest(timeout = 2.seconds) {
         val timeTaken = testTimeSource.measureTime {
             val result = treeAfterDebuggerProgramOrNullIfProgramFinished(
-                debuggerProgram = changeSpeed(1)
+                debuggerProgram = changeSpeed(1.eventsPerSecond)
                     .then(breakAfter(functionCall("function that never gets called"))),
                 interactions = listOf(Interaction.Resume),
                 events = trackingCallStacks {
@@ -219,7 +220,7 @@ class TreeStateTest {
     @Test
     fun `speed zero blocks execution indefinitely via awaitCancellation`() = runTest(timeout = 2.seconds) {
         val viewModel = CallTreeViewModel(
-            config = flowOf(Config(speed = 0)),
+            config = flowOf(Config(speed = 0.eventsPerSecond)),
             stepSignals = flowOf(StepSignal.Resume),
             breakpointProgram = BreakpointProgram(BreakpointSteps.Empty),
             onConfigChange = { error("I don't think it needs to happen, but it also shouldn't matter") },
@@ -248,7 +249,7 @@ class TreeStateTest {
 
     @Test
     fun `changing speed from zero to positive unblocks execution reactively`() = runTest(timeout = 2.seconds) {
-        val config = MutableStateFlow(Config(speed = 0))
+        val config = MutableStateFlow(Config(speed = 0.eventsPerSecond))
         val stepSignals = MutableSharedFlow<StepSignal>(replay = 1)
 
         val testState = MutableStateFlow(TestStateForTestBelow.Paused)
@@ -273,7 +274,7 @@ class TreeStateTest {
             advanceUntilIdle()
             stepSignals.emit(StepSignal.Resume)
             testState.value = TestStateForTestBelow.Running
-            config.value = Config(speed = 1)
+            config.value = Config(speed = 1.eventsPerSecond)
 
             assertNotNull(
                 race({
