@@ -3,25 +3,10 @@ package com.woutwerkman.calltreevisualizer
 import kotlinhax.shadowroutines.*
 import kotlin.io.path.Path
 
-data class Measurement(
-    private val _city: String,
-    private val _totalTemperature: Double,
-    private val _count: Int,
-) {
-    suspend fun getCity() = _city
-    suspend fun getTotalTemperature() = _totalTemperature
-    suspend fun getCount() = _count
-}
-
-private suspend fun Measurement.add(other: Measurement): Measurement = copy(
-    _totalTemperature = other.getTotalTemperature() + getTotalTemperature(),
-    _count = other.getCount() + getCount(),
-)
-
-suspend fun programWithAllTypes() {
-    measureLinearly()
+suspend fun testProgram() {
+    measureAverageTemperatures()
     linearExplosion()
-    measureLinearlyWithUnstructuredConcurrency()
+    unstructuredConcurrency()
     firstStructuredConcurrency()
     highlyBranchingCode()
 }
@@ -34,9 +19,13 @@ suspend fun firstStructuredConcurrency() {
 }
 
 suspend fun highlyBranchingCode() {
-    coroutineScope {
-        launch { bar(shouldThrowInLaunchedCoroutine = true) }
-        bar(shouldThrowInLaunchedCoroutine = false)
+    try {
+        withContext(Dispatchers.Default.limitedParallelism(1)) {
+            launch { bar(shouldThrowInLaunchedCoroutine = true) }
+            bar(shouldThrowInLaunchedCoroutine = false)
+        }
+    } catch (_: Throwable) {
+
     }
 }
 
@@ -52,10 +41,6 @@ suspend fun baz(shouldThrow: Boolean) {
     awaitCancellation()
 }
 
-@NonTracked
-public suspend fun <T> owningGlobalScope(block: suspend () -> T): T =
-    kotlinhax.shadowroutines.owningGlobalScope { block() }
-
 suspend fun recurse(a: Int) {
     if (a <= 0) error("AAAH")
     recurse(a - 1)
@@ -69,25 +54,19 @@ suspend fun linearExplosion() {
     }
 }
 
-suspend fun measureLinearlyWithUnstructuredConcurrency() {
+suspend fun unstructuredConcurrency() {
     val tasks = (0..3).map {
-        GlobalScope.launch { measureLinearly() }
+        GlobalScope.launch { measureAverageTemperatures() }
     }
     try {
-        measureLinearly()
         tasks.forEach { it.join() }
     } finally {
         tasks.forEach { it.cancel() }
     }
 }
 
-suspend fun measureLinearly() {
+suspend fun measureAverageTemperatures() {
     Path("/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/examples/src/main/resources/measurements.txt")
-//    (object {})::class
-//        .java
-//        .getResource("measurements.txt")!!
-//        .toURI()
-//        .toPath()
         .suseLines { lines ->
             lines
                 .map { it.split(": ") }
@@ -103,3 +82,22 @@ suspend fun measureLinearly() {
         }
         .also(::println)
 }
+
+data class Measurement(
+    private val _city: String,
+    private val _totalTemperature: Double,
+    private val _count: Int,
+) {
+    suspend fun getCity() = _city
+    suspend fun getTotalTemperature() = _totalTemperature
+    suspend fun getCount() = _count
+}
+
+private suspend fun Measurement.add(other: Measurement): Measurement = copy(
+    _totalTemperature = other.getTotalTemperature() + getTotalTemperature(),
+    _count = other.getCount() + getCount(),
+)
+
+@NonTracked
+public suspend fun <T> owningGlobalScope(block: suspend () -> T): T =
+    kotlinhax.shadowroutines.owningGlobalScope { block() }

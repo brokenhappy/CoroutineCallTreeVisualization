@@ -17,10 +17,9 @@ import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
 import com.woutwerkman.calltreevisualizer.baz
-import com.woutwerkman.calltreevisualizer.firstStructuredConcurrency
 import com.woutwerkman.calltreevisualizer.linearExplosion
-import com.woutwerkman.calltreevisualizer.programWithAllTypes
 import com.woutwerkman.calltreevisualizer.recurse
+import com.woutwerkman.calltreevisualizer.testProgram
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,12 +32,11 @@ suspend fun main() {
     val stepSignals = MutableSharedFlow<StepSignal>(replay = 10)
 
     runApp(
-        program = { programWithAllTypes() },
+        program = { testProgram() },
         breakpointProgram = changeSpeed(30.eventsPerSecond)
             .then(breakAfter(functionCall(::linearExplosion)))
             .then(changeSpeed(30.eventsPerSecond))
             .then(breakBefore(functionThrows(::recurse)))
-            .then(breakAfter(functionCall(::firstStructuredConcurrency)))
             .then(changeSpeed(10.eventsPerSecond))
             .then(breakAfter(functionCall("kotlinhax.shadowroutines.coroutineScope")))
             .then(changeSpeed(10.eventsPerSecond))
