@@ -32,6 +32,10 @@ kotlin {
     jvmToolchain(25)
 }
 
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("--enable-preview")
+}
+
 tasks.register<org.jetbrains.compose.reload.gradle.ComposeHotRun>("hotRunAppJava") {
     group = "application"
     description = "Run AppJava with the Java tracking agent (Hot Reload enabled)"

@@ -15,9 +15,14 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(23)
+    jvmToolchain(25)
+}
+
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("--enable-preview")
 }
 
 tasks.test {
     useJUnitPlatform()
+    jvmArgs("--enable-preview")
 }
