@@ -29,8 +29,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import coroutinecalltreevisualization.call_tree_visualizer_gui.generated.resources.Explosion_dark_theme
 import coroutinecalltreevisualization.call_tree_visualizer_gui.generated.resources.Explosion_light_theme
 import coroutinecalltreevisualization.call_tree_visualizer_gui.generated.resources.Res
-import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
-import com.woutwerkman.calltreevisualizer.owningGlobalScope
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
 import kotlinx.collections.immutable.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
@@ -120,24 +119,20 @@ fun DebuggerControls(
 @OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
 @Composable
 fun CallTreeUI(
-    program: suspend () -> Unit,
+    events: Flow<CallStackTrackEvent>,
     breakpointProgram: BreakpointProgram,
     config: Flow<Config>,
     onConfigChange: (Config) -> Unit,
     stepSignals: Flow<StepSignal>,
     onStepSignal: (StepSignal) -> Unit,
 ) {
-    val viewModel = remember(program, breakpointProgram) {
+    val viewModel = remember(events, breakpointProgram) {
         CallTreeViewModel(
             config = config,
             stepSignals = stepSignals,
             breakpointProgram = breakpointProgram,
             onConfigChange = onConfigChange,
-            events = trackingCallStacks {
-                owningGlobalScope {
-                    program()
-                }
-            }
+            events = events,
         )
     }
 

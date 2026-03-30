@@ -20,38 +20,57 @@ import com.woutwerkman.calltreevisualizer.baz
 import com.woutwerkman.calltreevisualizer.linearExplosion
 import com.woutwerkman.calltreevisualizer.recurse
 import com.woutwerkman.calltreevisualizer.testProgram
+import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEvent
+import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
+import com.woutwerkman.calltreevisualizer.owningGlobalScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.runBlocking
 import kotlin.time.ExperimentalTime
 
 @ExperimentalCoroutinesApi
-suspend fun main() {
+fun main() = runDebugger(
+    events = trackingCallStacks {
+        owningGlobalScope {
+            testProgram()
+        }
+    },
+    breakpointProgram = changeSpeed(30.eventsPerSecond)
+        .then(breakAfter(functionCall(::linearExplosion)))
+        .then(changeSpeed(30.eventsPerSecond))
+        .then(breakBefore(functionThrows(::recurse)))
+        .then(changeSpeed(10.eventsPerSecond))
+        .then(breakAfter(functionCall("kotlinhax.shadowroutines.coroutineScope")))
+        .then(changeSpeed(10.eventsPerSecond))
+        .then(breakBefore(functionThrows(::baz)))
+        .then(changeSpeed(10.eventsPerSecond))
+        .then(breakBefore(functionCancels("kotlinhax.shadowroutines.awaitCancellation"))),
+)
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun runDebugger(events: Flow<CallStackTrackEvent>, breakpointProgram: BreakpointProgram) {
     val config = MutableStateFlow(Config())
     val stepSignals = MutableSharedFlow<StepSignal>(replay = 10)
-
-    runApp(
-        program = { testProgram() },
-        breakpointProgram = changeSpeed(30.eventsPerSecond)
-            .then(breakAfter(functionCall(::linearExplosion)))
-            .then(changeSpeed(30.eventsPerSecond))
-            .then(breakBefore(functionThrows(::recurse)))
-            .then(changeSpeed(10.eventsPerSecond))
-            .then(breakAfter(functionCall("kotlinhax.shadowroutines.coroutineScope")))
-            .then(changeSpeed(10.eventsPerSecond))
-            .then(breakBefore(functionThrows(::baz)))
-            .then(changeSpeed(10.eventsPerSecond))
-            .then(breakBefore(functionCancels("kotlinhax.shadowroutines.awaitCancellation"))),
-        currentConfig = config,
-        onConfigChange = { config.value = it },
-        stepSignals = stepSignals,
-        onStepSignal = { stepSignals.tryEmit(it) },
-    )
+    runBlocking {
+        if (events.firstOrNull() == null) error("The program is empty!")
+        runApp(
+            events = events,
+            breakpointProgram = breakpointProgram,
+            currentConfig = config,
+            onConfigChange = { config.value = it },
+            stepSignals = stepSignals,
+            onStepSignal = { stepSignals.tryEmit(it) },
+        )
+    }
 }
 
 private suspend fun runApp(
-    program: suspend () -> Unit,
+    events: Flow<CallStackTrackEvent>,
     breakpointProgram: BreakpointProgram,
     currentConfig: Flow<Config>,
     onConfigChange: (Config) -> Unit,
@@ -91,7 +110,7 @@ private suspend fun runApp(
                 }
             }
             AppUi(
-                program = program,
+                events = events,
                 breakpointProgram = breakpointProgram,
                 settingsIsOpen = settingsIsOpen,
                 config = config,
@@ -106,7 +125,7 @@ private suspend fun runApp(
 
 @Composable
 private fun AppUi(
-    program: suspend () -> Unit,
+    events: Flow<CallStackTrackEvent>,
     breakpointProgram: BreakpointProgram,
     settingsIsOpen: Boolean,
     config: Config,
@@ -131,7 +150,7 @@ private fun AppUi(
                     }
                     Box(modifier = Modifier.weight(1f)) {
                         CallTreeUI(
-                            program = program,
+                            events = events,
                             breakpointProgram = breakpointProgram,
                             config = currentConfig,
                             onConfigChange = onConfigChange,
@@ -144,4 +163,3 @@ private fun AppUi(
         }
     }
 }
-

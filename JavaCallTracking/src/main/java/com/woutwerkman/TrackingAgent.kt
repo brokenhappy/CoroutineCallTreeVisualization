@@ -10,10 +10,14 @@ import net.bytebuddy.implementation.bind.annotation.SuperCall
 import net.bytebuddy.matcher.ElementMatchers.*
 import java.lang.instrument.Instrumentation
 import java.util.concurrent.Callable
+import java.util.concurrent.atomic.AtomicBoolean
 
 object TrackingAgent {
+    private val installed = AtomicBoolean(false)
+
     @JvmStatic
     fun premain(agentArgs: String?, inst: Instrumentation) {
+        if (!installed.compareAndSet(false, true)) return
         System.setProperty("net.bytebuddy.experimental", "true")
         AgentBuilder.Default()
             .ignore(nameStartsWith<TypeDescription>("java.")
@@ -39,7 +43,11 @@ object TrackingAgent {
                 .or(nameStartsWith("org.codehaus.groovy."))
                 .or(nameStartsWith("com.sun.proxy."))
                 .or(nameStartsWith("org.opentest4j."))
-                .or(nameStartsWith("org.apache.commons.")))
+                .or(nameStartsWith("org.apache.commons."))
+                .or(nameStartsWith("kotlinx."))
+                .or(nameStartsWith("com.woutwerkman.calltreevisualizer.gui."))
+                .or(nameStartsWith("com.woutwerkman.calltreevisualizer.coroutineintegration."))
+                .or(nameStartsWith("androidx.compose.")))
             .type(any())
             .transform { builder, _, _, _, _ ->
                 builder.method(isMethod<MethodDescription>()

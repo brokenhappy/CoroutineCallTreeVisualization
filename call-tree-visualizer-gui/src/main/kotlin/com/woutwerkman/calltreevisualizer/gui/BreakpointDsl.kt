@@ -54,6 +54,7 @@ data class BreakpointProgram(val steps: BreakpointSteps)
 fun BreakpointProgram.then(program: BreakpointProgram): BreakpointProgram =
     BreakpointProgram(steps.append(program.steps))
 
+@JvmName("changeSpeed")
 fun changeSpeed(newSpeed: EventsPerSecond) = BreakpointProgram(BreakpointSteps.SetSpeed(newSpeed, BreakpointSteps.Empty))
 
 fun breakBefore(matcher: BreakpointEventMatcher) = BreakpointProgram(BreakpointSteps.BreakBefore(matcher, BreakpointSteps.Empty))
