@@ -1,6 +1,6 @@
 [versions]
 # https://github.com/JetBrains/kotlin
-kotlin = "2.2.20"
+kotlin = "2.3.20"
 coroutines = "1.10.2"
 benchmarks = "0.4.14"
 shadowroutines = "0.0.2-SNAPSHOT"

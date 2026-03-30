@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    kotlin("jvm") version "2.2.20"
+    alias(libs.plugins.kotlin.jvm)
 }
 
 group = "com.woutwerkman"
