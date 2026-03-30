@@ -7,12 +7,10 @@ class AgentTest {
 
     class TestClass {
         fun trackedMethod() {
-            println("Inside trackedMethod")
             anotherTrackedMethod()
         }
 
         fun anotherTrackedMethod() {
-            println("Inside anotherTrackedMethod")
         }
     }
 

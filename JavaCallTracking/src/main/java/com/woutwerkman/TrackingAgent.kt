@@ -16,7 +16,6 @@ object TrackingAgent {
     fun premain(agentArgs: String?, inst: Instrumentation) {
         System.setProperty("net.bytebuddy.experimental", "true")
         AgentBuilder.Default()
-            .with(AgentBuilder.Listener.StreamWriting.toSystemOut())
             .ignore(nameStartsWith<TypeDescription>("java.")
                 .or(nameStartsWith("javax."))
                 .or(nameStartsWith("sun."))
