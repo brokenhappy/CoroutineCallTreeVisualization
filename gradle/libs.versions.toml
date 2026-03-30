@@ -22,10 +22,10 @@ compose = "1.10.0"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
 maven-publish = "0.31.0"
 calltreevisualizer = "0.0.1"
-calltreevisualizer-plugin = "0.0.1-2.2.20"
+calltreevisualizer-plugin = "0.0.2"
 
 # Release versions
-kotlin-release-target = "2.2.20"
+kotlin-release-target = "2.3.20"
 calltreevisualizer-release-target = "0.0.2"
 
 [libraries]

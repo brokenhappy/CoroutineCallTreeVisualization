@@ -41,8 +41,8 @@ buildConfig {
         internalVisibility = true
     }
 
-    packageName(group.toString())
-    buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"${rootProject.group}\"")
+    packageName("com.woutwerkman.calltreevisualizer")
+    buildConfigField("String", "KOTLIN_PLUGIN_ID", "\"com.woutwerkman.calltreevisualizer\"")
 }
 
 tasks.test {
@@ -100,7 +100,7 @@ fun Test.setLibraryProperty(propName: String, jarName: String) {
 
 
 configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
-    coordinates(rootProject.group.toString(), "compiler-plugin", "${
+    coordinates("com.woutwerkman.calltreevisualizer", "compiler-plugin", "${
         libs.versions.calltreevisualizer.release.target.get()
     }-${
         libs.versions.kotlin.release.target.get()
