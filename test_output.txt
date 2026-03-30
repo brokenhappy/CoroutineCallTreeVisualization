@@ -1,0 +1,270 @@
+Initialized native services in: /Users/Wout.Werkman/.gradle/native
+Initialized jansi services in: /Users/Wout.Werkman/.gradle/native
+The client will now receive all logging from the daemon (pid: 15513). The daemon log file: /Users/Wout.Werkman/.gradle/daemon/8.14/daemon-15513.out.log
+Starting 13th build in daemon [uptime: 9 mins 35.65 secs, performance: 99%, GC rate: 0.00/s, heap usage: 0% of 1 GiB]
+Using 12 worker leases.
+Now considering [/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Settings evaluated using settings file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/settings.gradle.kts'.
+Using local directory build cache for the root build (location = /Users/Wout.Werkman/.gradle/caches/build-cache-1, remove unused entries = after 7 days).
+Projects loaded. Root project using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/build.gradle.kts'.
+Included projects: [root project 'CoroutineCallTreeVisualization', project ':benchmarks', project ':call-tree-visualizer-gui', project ':compiler-plugin', project ':examples', project ':gradle-plugin', project ':java-agent-test', project ':JavaCallTracking', project ':programs-for-tests', project ':publisher', project ':stack-tracking-core-api', project ':tracked-call-tree-as-flow']
+
+> Configure project :
+Evaluating root project 'CoroutineCallTreeVisualization' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.multiplatform', version: '2.2.20', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlinx.binary-compatibility-validator', version: '0.16.3', apply: false]
+Resolved plugin [id: 'com.github.gmazzo.buildconfig', version: '5.6.5', apply: false]
+Resolved plugin [id: 'com.vanniktech.maven.publish', version: '0.31.0', apply: false]
+
+> Configure project :benchmarks
+Evaluating project ':benchmarks' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/benchmarks/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20']
+Resolved plugin [id: 'org.jetbrains.kotlinx.benchmark', version: '0.4.14']
+Build 2cebe763-5bce-4524-9f92-c15f2182b54f is started
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+Detected Kotlin plugin version '2.2.20'
+kotlin scripting plugin: created the scripting discovery configuration: benchmarkKotlinScriptDef
+Configuring benchmarks for 'benchmark' using Java
+
+> Configure project :call-tree-visualizer-gui
+Evaluating project ':call-tree-visualizer-gui' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/call-tree-visualizer-gui/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.2.20']
+Resolved plugin [id: 'org.jetbrains.compose', version: '1.10.0']
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+Configure java-only compose resources
+Configure compose resources generation
+Configure Res object generation for main
+Configure resource accessors generation for main
+Configure resource accessors generation for test
+Configure actual resource collectors generation for main
+Configure main resources for '' target
+Configure test resources for '' target
+Check that new 'org.jetbrains.kotlin.plugin.compose' was applied
+Configure resource accessors generation for dev
+kotlin scripting plugin: created the scripting discovery configuration: devKotlinScriptDef
+Configure dev resources for '' target
+
+> Configure project :compiler-plugin
+Evaluating project ':compiler-plugin' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/compiler-plugin/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20']
+Resolved plugin [id: 'com.github.gmazzo.buildconfig', version: '5.6.5']
+Resolved plugin [id: 'java-test-fixtures']
+Resolved plugin [id: 'idea']
+Resolved plugin [id: 'com.vanniktech.maven.publish', version: '0.31.0']
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testFixturesKotlinScriptDef
+
+> Configure project :examples
+Evaluating project ':examples' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/examples/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20']
+Resolved plugin [id: 'com.woutwerkman.calltreevisualizer', version: '0.0.1-2.2.20']
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :gradle-plugin
+Evaluating project ':gradle-plugin' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/gradle-plugin/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20']
+Resolved plugin [id: 'com.github.gmazzo.buildconfig', version: '5.6.5']
+Resolved plugin [id: 'java-gradle-plugin']
+Resolved plugin [id: 'com.vanniktech.maven.publish', version: '0.31.0']
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :java-agent-test
+Evaluating project ':java-agent-test' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/java-agent-test/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20']
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :JavaCallTracking
+Evaluating project ':JavaCallTracking' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/JavaCallTracking/build.gradle.kts'.
+Resolved plugin [id: 'java']
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20']
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :programs-for-tests
+Evaluating project ':programs-for-tests' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/programs-for-tests/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20']
+Resolved plugin [id: 'com.woutwerkman.calltreevisualizer', version: '0.0.1-2.2.20']
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :publisher
+Evaluating project ':publisher' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/publisher/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.2.20']
+Resolved plugin [id: 'org.gradle.application']
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :stack-tracking-core-api
+Evaluating project ':stack-tracking-core-api' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/stack-tracking-core-api/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.multiplatform', version: '2.2.20']
+Resolved plugin [id: 'org.jetbrains.kotlinx.binary-compatibility-validator', version: '0.16.3']
+Resolved plugin [id: 'com.vanniktech.maven.publish', version: '0.31.0']
+Using Kotlin Gradle Plugin gradle813 variant
+[KOTLIN] Storing cached files in /Users/Wout.Werkman/.gradle
+[KOTLIN] Storing cached files in /Users/Wout.Werkman/.gradle
+[KOTLIN] Storing cached files in /Users/Wout.Werkman/.gradle
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+[KOTLIN] Storing cached files in /Users/Wout.Werkman/.gradle
+[KOTLIN] Storing cached files in /Users/Wout.Werkman/.gradle
+[KOTLIN] Storing cached files in /Users/Wout.Werkman/.gradle
+[KOTLIN] Storing cached files in /Users/Wout.Werkman/.gradle
+
+> Configure project :tracked-call-tree-as-flow
+Evaluating project ':tracked-call-tree-as-flow' using build file '/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/tracked-call-tree-as-flow/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.multiplatform', version: '2.2.20']
+Resolved plugin [id: 'org.jetbrains.kotlinx.binary-compatibility-validator', version: '0.16.3']
+Resolved plugin [id: 'com.vanniktech.maven.publish', version: '0.31.0']
+Using Kotlin Gradle Plugin gradle813 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+[KOTLIN] Storing cached files in /Users/Wout.Werkman/.gradle
+All projects evaluated.
+Task path ':java-agent-test:cleanTest' matched project ':java-agent-test'
+Task name matched 'cleanTest'
+Task path ':java-agent-test:test' matched project ':java-agent-test'
+Task name matched 'test'
+Selected primary task 'cleanTest' from project :java-agent-test
+Selected primary task 'test' from project :java-agent-test
+Starting process 'command '/usr/libexec/java_home''. Working directory: /Users/Wout.Werkman/.gradle/daemon/8.14 Command: /usr/libexec/java_home -V
+Path for java installation '/Users/Wout.Werkman/Library/Java/JavaVirtualMachines/openjdk-25/Contents/Home' (IntelliJ) auto-detected does not contain a java executable
+Path for java installation '/Users/Wout.Werkman/Library/Java/JavaVirtualMachines/openjdk-21.0.1/Contents/Home' (IntelliJ) auto-detected does not contain a java executable
+Path for java installation '/Users/Wout.Werkman/Library/Java/JavaVirtualMachines/corretto-19.0.2/Contents/Home' (IntelliJ) auto-detected does not contain a java executable
+Successfully started process 'command '/usr/libexec/java_home''
+Tasks to be executed: [task ':java-agent-test:cleanTest', task ':java-agent-test:checkKotlinGradlePluginConfigurationErrors', task ':JavaCallTracking:checkKotlinGradlePluginConfigurationErrors', task ':JavaCallTracking:compileKotlin', task ':JavaCallTracking:compileJava', task ':JavaCallTracking:processResources', task ':JavaCallTracking:classes', task ':JavaCallTracking:jar', task ':java-agent-test:compileKotlin', task ':java-agent-test:compileJava', task ':java-agent-test:processResources', task ':java-agent-test:classes', task ':java-agent-test:jar', task ':java-agent-test:compileTestKotlin', task ':java-agent-test:compileTestJava', task ':java-agent-test:processTestResources', task ':java-agent-test:testClasses', task ':java-agent-test:test']
+Tasks that were excluded: []
+Resolve mutations for :java-agent-test:cleanTest (Thread[Execution worker,5,main]) started.
+:java-agent-test:cleanTest (Thread[Execution worker Thread 9,5,main]) started.
+destroyer locations for task group 0 (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :java-agent-test:cleanTest
+Caching disabled for task ':java-agent-test:cleanTest' because:
+  Deletion cannot be cached
+Task ':java-agent-test:cleanTest' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Resolve mutations for :java-agent-test:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 9,5,main]) started.
+:java-agent-test:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :java-agent-test:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':java-agent-test:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :JavaCallTracking:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 6,5,main]) started.
+:JavaCallTracking:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :JavaCallTracking:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':JavaCallTracking:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :JavaCallTracking:compileKotlin (Thread[Execution worker Thread 6,5,main]) started.
+:JavaCallTracking:compileKotlin (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :JavaCallTracking:compileKotlin UP-TO-DATE
+Build cache key for task ':JavaCallTracking:compileKotlin' is 0e742964da0142ddfbb88129563c4a4e
+Skipping task ':JavaCallTracking:compileKotlin' as it is up-to-date.
+Resolve mutations for :JavaCallTracking:compileJava (Thread[Execution worker Thread 6,5,main]) started.
+:JavaCallTracking:compileJava (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :JavaCallTracking:compileJava UP-TO-DATE
+Build cache key for task ':JavaCallTracking:compileJava' is 7f0b079dd26e46437e0734dcfd573e3f
+Skipping task ':JavaCallTracking:compileJava' as it is up-to-date.
+No compile result for :JavaCallTracking:compileJava
+No compile result for :JavaCallTracking:compileJava
+Resolve mutations for :JavaCallTracking:processResources (Thread[Execution worker Thread 6,5,main]) started.
+:JavaCallTracking:processResources (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :JavaCallTracking:processResources NO-SOURCE
+Skipping task ':JavaCallTracking:processResources' as it has no source files and no previous output files.
+Resolve mutations for :JavaCallTracking:classes (Thread[Execution worker Thread 6,5,main]) started.
+:JavaCallTracking:classes (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :JavaCallTracking:classes UP-TO-DATE
+Skipping task ':JavaCallTracking:classes' as it has no actions.
+Resolve mutations for :JavaCallTracking:jar (Thread[Execution worker Thread 10,5,main]) started.
+:JavaCallTracking:jar (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :JavaCallTracking:jar UP-TO-DATE
+Caching disabled for task ':JavaCallTracking:jar' because:
+  Not worth caching
+Skipping task ':JavaCallTracking:jar' as it is up-to-date.
+work action resolve JavaCallTracking.jar (project :JavaCallTracking) (Thread[Execution worker Thread 10,5,main]) started.
+Resolve mutations for :java-agent-test:compileKotlin (Thread[Execution worker Thread 2,5,main]) started.
+:java-agent-test:compileKotlin (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :java-agent-test:compileKotlin NO-SOURCE
+Skipping task ':java-agent-test:compileKotlin' as it has no source files and no previous output files.
+Resolve mutations for :java-agent-test:compileJava (Thread[Execution worker Thread 2,5,main]) started.
+:java-agent-test:compileJava (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :java-agent-test:compileJava NO-SOURCE
+Skipping task ':java-agent-test:compileJava' as it has no source files and no previous output files.
+Resolve mutations for :java-agent-test:processResources (Thread[Execution worker Thread 2,5,main]) started.
+:java-agent-test:processResources (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :java-agent-test:processResources NO-SOURCE
+Skipping task ':java-agent-test:processResources' as it has no source files and no previous output files.
+Resolve mutations for :java-agent-test:classes (Thread[Execution worker Thread 2,5,main]) started.
+:java-agent-test:classes (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :java-agent-test:classes UP-TO-DATE
+Skipping task ':java-agent-test:classes' as it has no actions.
+Resolve mutations for :java-agent-test:jar (Thread[Execution worker Thread 7,5,main]) started.
+:java-agent-test:jar (Thread[Execution worker Thread 9,5,main]) started.
+
+> Task :java-agent-test:jar UP-TO-DATE
+Caching disabled for task ':java-agent-test:jar' because:
+  Not worth caching
+Skipping task ':java-agent-test:jar' as it is up-to-date.
+Resolve mutations for :java-agent-test:compileTestKotlin (Thread[Execution worker Thread 9,5,main]) started.
+:java-agent-test:compileTestKotlin (Thread[Execution worker Thread 9,5,main]) started.
+
+> Task :java-agent-test:compileTestKotlin UP-TO-DATE
+Build cache key for task ':java-agent-test:compileTestKotlin' is 5dcdd1aa29e77f8c00614718dd697904
+Skipping task ':java-agent-test:compileTestKotlin' as it is up-to-date.
+Resolve mutations for :java-agent-test:compileTestJava (Thread[Execution worker Thread 9,5,main]) started.
+:java-agent-test:compileTestJava (Thread[Execution worker Thread 9,5,main]) started.
+
+> Task :java-agent-test:compileTestJava NO-SOURCE
+Skipping task ':java-agent-test:compileTestJava' as it has no source files and no previous output files.
+Resolve mutations for :java-agent-test:processTestResources (Thread[Execution worker Thread 9,5,main]) started.
+:java-agent-test:processTestResources (Thread[Execution worker Thread 9,5,main]) started.
+
+> Task :java-agent-test:processTestResources NO-SOURCE
+Skipping task ':java-agent-test:processTestResources' as it has no source files and no previous output files.
+Resolve mutations for :java-agent-test:testClasses (Thread[Execution worker Thread 9,5,main]) started.
+:java-agent-test:testClasses (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :java-agent-test:testClasses UP-TO-DATE
+Skipping task ':java-agent-test:testClasses' as it has no actions.
+Resolve mutations for :java-agent-test:test (Thread[Execution worker Thread 3,5,main]) started.
+:java-agent-test:test (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :java-agent-test:test FROM-CACHE
+Build cache key for task ':java-agent-test:test' is 03674cace648656454a7113fe040684e
+Task ':java-agent-test:test' is not up-to-date because:
+  Output property 'binaryResultsDirectory' file /Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/java-agent-test/build/test-results/test/binary has been removed.
+  Output property 'binaryResultsDirectory' file /Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/java-agent-test/build/test-results/test/binary/output.bin has been removed.
+  Output property 'binaryResultsDirectory' file /Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization/java-agent-test/build/test-results/test/binary/output.bin.idx has been removed.
+  and more...
+Loaded cache entry for task ':java-agent-test:test' with cache key 03674cace648656454a7113fe040684e
+Build 2cebe763-5bce-4524-9f92-c15f2182b54f is closed
+
+BUILD SUCCESSFUL in 1s
+7 actionable tasks: 1 executed, 1 from cache, 5 up-to-date
+Watched directory hierarchies: [/Users/Wout.Werkman/IdeaProjects/CoroutineCallTreeVisualization]

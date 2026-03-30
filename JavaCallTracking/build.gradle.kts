@@ -15,6 +15,21 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(kotlin("stdlib-jdk8"))
+    implementation("net.bytebuddy:byte-buddy:1.15.11")
+}
+
+tasks.jar {
+    manifest {
+        attributes(
+            "Premain-Class" to "com.woutwerkman.TrackingAgent",
+            "Can-Redefine-Classes" to "true",
+            "Can-Retransform-Classes" to "true"
+        )
+    }
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }) {
+        exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 java {
