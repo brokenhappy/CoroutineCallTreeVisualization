@@ -1,4 +1,4 @@
-package com.woutwerkman.calltreevisualizer.test
+package com.woutwerkman.calltreevisualizer.programsForTest
 
 import kotlinx.coroutines.*
 import kotlin.time.Duration

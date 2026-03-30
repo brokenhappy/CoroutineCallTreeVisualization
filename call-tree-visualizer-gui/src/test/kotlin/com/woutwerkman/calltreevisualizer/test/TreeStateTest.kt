@@ -7,6 +7,13 @@ import com.woutwerkman.calltreevisualizer.coroutineintegration.CallStackTrackEve
 import com.woutwerkman.calltreevisualizer.gui.*
 import com.woutwerkman.calltreevisualizer.coroutineintegration.trackingCallStacks
 import com.woutwerkman.calltreevisualizer.owningGlobalScope
+import com.woutwerkman.calltreevisualizer.programsForTest.bar
+import com.woutwerkman.calltreevisualizer.programsForTest.cancellingCall
+import com.woutwerkman.calltreevisualizer.programsForTest.foo
+import com.woutwerkman.calltreevisualizer.programsForTest.persistentBranchingCall
+import com.woutwerkman.calltreevisualizer.programsForTest.simpleCall
+import com.woutwerkman.calltreevisualizer.programsForTest.throwingCall
+import com.woutwerkman.calltreevisualizer.programsForTest.trackedDelay
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.TestScope
@@ -109,7 +116,9 @@ class TreeStateTest {
 
         // Pause when it's about to throw
         val treeBefore = treeAfterDebuggerProgramOrNullIfProgramFinished(
-            program = { try { throwingCall() } catch (e: Exception) {} },
+            program = { try {
+                throwingCall()
+            } catch (e: Exception) {} },
             debuggerProgram = breakBefore(functionThrows(fqn)),
             interactions = listOf(Interaction.Resume)
         )!!
@@ -120,7 +129,9 @@ class TreeStateTest {
 
         // Pause after it has thrown
         val treeAfter = treeAfterDebuggerProgramOrNullIfProgramFinished(
-            program = { try { throwingCall() } catch (e: Exception) {} },
+            program = { try {
+                throwingCall()
+            } catch (e: Exception) {} },
             debuggerProgram = breakAfter(functionThrows(fqn)),
             interactions = listOf(Interaction.Resume)
         )!!
